@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/grafana/grafana_plugin_model/go/datasource"
@@ -70,7 +71,19 @@ type GrafanaCommonRequest struct {
 
 func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
 	v.logger.Debug("Query", "datasource", tsdbReq.Datasource.Name, "TimeRange", tsdbReq.TimeRange)
+	v.logger.Debug(tsdbReq.String())
 	v.logger.Debug(tsdbReq.Queries[0].ModelJson)
+	v.logger.Debug(tsdbReq.GetDatasource().DecryptedSecureJsonData["password"])
+	v.logger.Debug(tsdbReq.GetDatasource().String())
+
+	decryptedInfo := tsdbReq.GetDatasource().DecryptedSecureJsonData
+	user := decryptedInfo["user"]
+	password := decryptedInfo["password"]
+	database := decryptedInfo["database"]
+
+	connStr := fmt.Sprintf("vertica://%s:%s@%s/%s", user, password, tsdbReq.GetDatasource().GetUrl(), database)
+
+	v.logger.Debug(connStr)
 
 	return &datasource.DatasourceResponse{}, nil
 }

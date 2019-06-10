@@ -1,20 +1,32 @@
 package main
 
 import (
+	"bufio"
+	"os"
+
 	"github.com/grafana/grafana_plugin_model/go/datasource"
 	hclog "github.com/hashicorp/go-hclog"
 	plugin "github.com/hashicorp/go-plugin"
 )
 
-var logger = hclog.New(&hclog.LoggerOptions{
-	Name:  "vertica-grafana-plugin",
-	Level: hclog.LevelFromString("DEBUG"),
-})
-
 func main() {
+
+	f, err := os.Create("/home/ambival/log.txt")
+
+	if err != nil {
+		os.Exit(0)
+	}
+
+	var logger = hclog.New(&hclog.LoggerOptions{
+		Name:   "vertica-grafana-plugin",
+		Level:  hclog.LevelFromString("DEBUG"),
+		Output: bufio.NewWriter(f),
+	})
+
 	logger.Debug("Starting Vertica datasource plugin")
 
-	ociDatasource, err := newVerticaDatasource(logger)
+	verticaDatasource, err := newVerticaDatasource(logger)
+
 	if err != nil {
 		logger.Error("Error creating Vertica datasource: " + err.Error())
 	} else {
@@ -26,7 +38,7 @@ func main() {
 				MagicCookieValue: "datasource",
 			},
 			Plugins: map[string]plugin.Plugin{
-				"backend-datasource": &datasource.DatasourcePluginImpl{Plugin: ociDatasource},
+				"backend-datasource": &datasource.DatasourcePluginImpl{Plugin: verticaDatasource},
 			},
 			GRPCServer: plugin.DefaultGRPCServer,
 		})
