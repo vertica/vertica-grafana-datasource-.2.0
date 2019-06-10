@@ -2,11 +2,10 @@ package main
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/grafana/grafana_plugin_model/go/datasource"
-	log "github.com/hashicorp/go-hclog"
+	hclog "github.com/hashicorp/go-hclog"
 )
 
 //how often to refresh our compartmentID cache
@@ -33,8 +32,12 @@ var cacheRefreshTime = time.Minute
 // 	}, nil
 // }
 
-func newVerticaDatasource(aLogger log.Logger) (*VerticaDatasource, error) {
-	return nil, &VerticaDatasource{logger: aLogger}
+type VerticaDatasource struct {
+	logger hclog.Logger
+}
+
+func newVerticaDatasource(aLogger hclog.Logger) (*VerticaDatasource, error) {
+	return &VerticaDatasource{logger: aLogger}, nil
 }
 
 // GrafanaOCIRequest - Query Request comning in from the front end
@@ -66,8 +69,8 @@ type GrafanaCommonRequest struct {
 }
 
 func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
-	o.logger.Debug("Query", "datasource", tsdbReq.Datasource.Name, "TimeRange", tsdbReq.TimeRange)
-	o.logger.Debug(tsdbReq.Queries[0].ModelJson)
+	v.logger.Debug("Query", "datasource", tsdbReq.Datasource.Name, "TimeRange", tsdbReq.TimeRange)
+	v.logger.Debug(tsdbReq.Queries[0].ModelJson)
 
 	return &datasource.DatasourceResponse{}, nil
 }

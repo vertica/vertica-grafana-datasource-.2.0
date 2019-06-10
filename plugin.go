@@ -2,13 +2,13 @@ package main
 
 import (
 	"github.com/grafana/grafana_plugin_model/go/datasource"
-	log "github.com/hashicorp/go-hclog"
+	hclog "github.com/hashicorp/go-hclog"
 	plugin "github.com/hashicorp/go-plugin"
 )
 
-var logger = log.New(&log.LoggerOptions{
+var logger = hclog.New(&hclog.LoggerOptions{
 	Name:  "vertica-grafana-plugin",
-	Level: log.LevelFromString("DEBUG"),
+	Level: hclog.LevelFromString("DEBUG"),
 })
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 
 	ociDatasource, err := newVerticaDatasource(logger)
 	if err != nil {
-		pluginLogger.Error("Error creating Vertica datasource: " + err.String())
+		logger.Error("Error creating Vertica datasource: " + err.Error())
 	} else {
 		plugin.Serve(&plugin.ServeConfig{
 

@@ -43,7 +43,7 @@ export class VerticaQueryCtrl extends QueryCtrl {
   /** @ngInject */
   constructor($scope, $injector, private templateSrv, private $q, private uiSegmentSrv) {
     super($scope, $injector);
-    this.target = this.target;
+    // this.target = this.target;
     this.queryModel = new VerticaQuery(this.target, templateSrv, this.panel.scopedVars);
     this.metaBuilder = new VerticaMetaQuery(this.target, this.queryModel);
     this.updateProjection();

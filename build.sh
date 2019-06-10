@@ -34,4 +34,4 @@ if [[ ! -d ./vendor ]]; then
 fi
 
 echo "building go binary"
-GOOS=$GOOS go build -o ./dist/oci-plugin$POST
+GOOS=$GOOS go build -o ./dist/vertica-plugin$POST

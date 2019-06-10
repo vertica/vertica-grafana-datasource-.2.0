@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        // "module": "commonjs",
+        "noImplicitAny": true,
+        "outDir": "dist",
+        "removeComments": true,
+        "paths": {
+            "*": ["src/*", "../../grafana/grafana/public/*"]
+        },
+        "preserveConstEnums": true,
+        "sourceMap": true
+    },
+    "files": [
+        "src/module.ts"
+    ],
+    "root": [
+        // "./src",
+        // "$GOPATH/src/github.com/grafana/grafana/public"
+    ]
+}
