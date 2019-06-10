@@ -20,55 +20,6 @@ export default class VerticaDatasource {
     this.timeSrv = timeSrv;
   }
 
-  metricFindQuery(query, optionalOptions) {
-    let refId = 'tempvar';
-    if (optionalOptions && optionalOptions.variable && optionalOptions.variable.name) {
-      refId = optionalOptions.variable.name;
-    }
-
-    const interpolatedQuery = {
-      refId: refId,
-      datasourceId: this.id,
-      rawSql: this.templateSrv.replace(query, {}, this.interpolateVariable),
-      format: 'table',
-    };
-
-    const range = this.timeSrv.timeRange();
-    const data = {
-      queries: [interpolatedQuery],
-      from: range.from.valueOf().toString(),
-      to: range.to.valueOf().toString(),
-    };
-
-    return this.backendSrv
-      .datasourceRequest({
-        url: '/api/tsdb/query',
-        method: 'POST',
-        data: data,
-      })
-      .then(data => this.responseParser.parseMetricFindQueryResult(refId, data));
-  }
-
-  interpolateVariable = (value, variable) => {
-    if (typeof value === 'string') {
-      if (variable.multi || variable.includeAll) {
-        return this.queryModel.quoteLiteral(value);
-      } else {
-        return value;
-      }
-    }
-
-    if (typeof value === 'number') {
-      return value;
-    }
-
-    const quotedValues = _.map(value, v => {
-      return this.queryModel.quoteLiteral(v);
-    });
-    return quotedValues.join(',');
-  };
-
-
   query(options) {
     const queries = _.filter(options.targets, target => {
       return target.hide !== true;
@@ -100,6 +51,54 @@ export default class VerticaDatasource {
         },
       })
       .then(this.responseParser.processQueryResult);
+  }
+
+  metricFindQuery(query, optionalOptions) {
+    let refId = 'tempvar';
+    if (optionalOptions && optionalOptions.variable && optionalOptions.variable.name) {
+      refId = optionalOptions.variable.name;
+    }
+
+    const interpolatedQuery = {
+      refId: refId,
+      datasourceId: this.id,
+      rawSql: this.templateSrv.replace(query, {}, this.interpolateVariable),
+      format: 'table',
+    };
+
+    const range = this.timeSrv.timeRange();
+    const data = {
+      queries: [interpolatedQuery],
+      from: range.from.valueOf().toString(),
+      to: range.to.valueOf().toString(),
+    };
+
+    return this.backendSrv
+      .datasourceRequest({
+        url: '/api/tsdb/query',
+        method: 'POST',
+        data: data,
+      })
+      .then(data => this.responseParser.parseMetricFindQueryResult(refId, data));
+  }
+
+  interpolateVariable(value, variable) {
+    if (typeof value === 'string') {
+      if (variable.multi || variable.includeAll) {
+        return this.queryModel.quoteLiteral(value);
+      } else {
+        return value;
+      }
+    }
+
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    const quotedValues = _.map(value, v => {
+      return this.queryModel.quoteLiteral(v);
+    });
+    return quotedValues.join(',');
   }
 
   annotationQuery(options) {

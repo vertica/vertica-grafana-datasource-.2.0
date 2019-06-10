@@ -2,14 +2,14 @@
   "name": "vertica-grafana-plugin",
   "private": true,
   "version": "0.0.1",
-  "description": "",
+  "description": "Vertica Data Source Plugin for Grafana",
   "main": "index.js",
   "scripts": {
     "buildjs": "./node_modules/.bin/grunt",
-    "lint": "./node_modules/.bin/eslint src/",
-    "fix": "./node_modules/.bin/eslint --fix src/",
+    "lint": "./node_modules/.bin/eslint frontend/",
+    "fix": "./node_modules/.bin/eslint --fix frontend/",
     "bump": "./node_modules/.bin/grunt bump",
-    "test": "jest src/ --coverage"
+    "test": "jest frontend/ --coverage"
   },
   "author": "",
   "license": "Apache 2.0",

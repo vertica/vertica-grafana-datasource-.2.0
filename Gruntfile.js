@@ -15,8 +15,8 @@ module.exports = function(grunt) {
     clean: ["dist"],
 
     copy: {
-      src_to_dist: {
-        cwd: 'src',
+      frontend_to_dist: {
+        cwd: 'frontend',
         expand: true,
         src: ['**/*', '!**/*.js', '!**/*.scss'],
         dest: 'dist'
@@ -30,7 +30,7 @@ module.exports = function(grunt) {
 
     watch: {
       rebuild_all: {
-        files: ['src/**/*'],
+        files: ['frontend/**/*'],
         tasks: ['default'],
         options: {spawn: false}
       }
@@ -46,7 +46,7 @@ module.exports = function(grunt) {
           plugins: ['transform-es2015-modules-systemjs', 'transform-es2015-for-of']
         },
         files: [{
-          cwd: 'src',
+          cwd: 'frontend',
           expand: true,
           src: ['**/*.js'],
           dest: 'dist',
@@ -55,7 +55,7 @@ module.exports = function(grunt) {
       },
       distTestNoSystemJs: {
         files: [{
-          cwd: 'src',
+          cwd: 'frontend',
           expand: true,
           src: ['**/*.js'],
           dest: 'dist/test',
@@ -74,7 +74,7 @@ module.exports = function(grunt) {
     },
     bump: {
       options: {
-        files: ['plugin.json', 'package.json', 'src/plugin.json'],
+        files: ['plugin.json', 'package.json', 'frontend/plugin.json'],
         commitFiles: ['-a'],
         pushTo: 'origin',
         commitMessage: '[skip ci] Release v%VERSION%',
@@ -83,5 +83,5 @@ module.exports = function(grunt) {
   });
   grunt.loadNpmTasks('grunt-bump');
 
-  grunt.registerTask('default', ['clean', 'copy:src_to_dist', 'copy:pluginDef', 'babel']);
+  grunt.registerTask('default', ['clean', 'copy:frontend_to_dist', 'copy:pluginDef', 'babel']);
 };
