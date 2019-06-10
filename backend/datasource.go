@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/grafana/grafana_plugin_model/go/datasource"
 	hclog "github.com/hashicorp/go-hclog"
+	_ "github.com/vertica/vertica-sql-go"
 )
 
 //how often to refresh our compartmentID cache
@@ -84,6 +86,18 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 	connStr := fmt.Sprintf("vertica://%s:%s@%s/%s", user, password, tsdbReq.GetDatasource().GetUrl(), database)
 
 	v.logger.Debug(connStr)
+
+	connDB, err := sql.Open("vertica", connStr)
+
+	if err != nil {
+		return &datasource.DatasourceResponse{
+			Results: [
+				datasource.QueryResult{
+					Error: err.Error(),
+				}
+			]
+		}
+	}
 
 	return &datasource.DatasourceResponse{}, nil
 }
