@@ -26,16 +26,6 @@ var cacheRefreshTime = time.Minute
 // 	timeCacheUpdated time.Time
 // }
 
-//NewOCIDatasource - constructor
-// func NewOCIDatasource(pluginLogger hclog.Logger) (*OCIDatasource, error) {
-// 	m := make(map[string]string)
-
-// 	return &OCIDatasource{
-// 		logger:     pluginLogger,
-// 		nameToOCID: m,
-// 	}, nil
-// }
-
 type VerticaDatasource struct {
 	logger hclog.Logger
 }
@@ -79,9 +69,63 @@ type configArgs struct {
 	UsePreparedStmts bool   `json:"usePreparedStatements"`
 }
 
-func buildErrorResponse(err error) *datasource.DatasourceResponse {
+type queryModel struct {
+	DataSourceID string `json:"datasourceId"`
+	Format       string `json:"format"`
+	RawSQL       string `json:"rawSql"`
+	RefID        string `json:"redId"`
+}
+
+func buildErrorResponse(queryArgs queryModel, err error) *datasource.DatasourceResponse {
 	results := make([]*datasource.QueryResult, 1)
-	results[0] = &datasource.QueryResult{Error: err.Error()}
+	results[0] = &datasource.QueryResult{Error: err.Error(), RefId: queryArgs.RefID}
+
+	return &datasource.DatasourceResponse{Results: results}
+}
+
+func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult, rows *sql.Rows) {
+	result.Tables = make([]*datasource.Table, 1)
+
+	columns, _ := rows.Columns()
+
+	result.Tables[0] = &datasource.Table{
+		Columns: make([]*datasource.TableColumn, len(columns)),
+	}
+
+	// Build columns
+	for ct := range columns {
+		result.Tables[0].Columns[ct] = &datasource.TableColumn{Name: columns[ct]}
+		//v.logger.Debug(columns[ct])
+	}
+
+	// Builds rows
+	rowIn := make([]interface{}, len(columns))
+	for rows.Next() {
+		rows.Scan(rowIn...)
+
+		//colTypes, _ := rows.ColumnTypes()
+
+		// rowOut := make([]*datasource.RowValue, len(columns))
+
+		//for _, colScan := range colTypes {
+		// v.logger.Debug(colScan.ScanType)
+		// switch(colScan.ScanType) {
+		// 	case reflect.
+		// }
+		//rowOut[ct] =
+		//}
+	}
+}
+
+func (v *VerticaDatasource) buildQueryResponse(queryArgs queryModel, rows *sql.Rows) *datasource.DatasourceResponse {
+	results := make([]*datasource.QueryResult, 1)
+	results[0] = &datasource.QueryResult{RefId: queryArgs.RefID}
+
+	switch queryArgs.Format {
+	case "table":
+		v.buildTableQueryResult(results[0], rows)
+	}
+
 	return &datasource.DatasourceResponse{Results: results}
 }
 
@@ -92,12 +136,15 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 	v.logger.Debug(tsdbReq.Datasource.DecryptedSecureJsonData["password"])
 	v.logger.Debug(tsdbReq.Datasource.String())
 
+	var queryArgs queryModel
+	json.Unmarshal([]byte(tsdbReq.Queries[0].ModelJson), &queryArgs)
+
 	var cfg configArgs
 	json.Unmarshal([]byte(tsdbReq.Datasource.JsonData), &cfg)
 
-	v.logger.Debug(cfg.Database)
-	v.logger.Debug(cfg.User)
-	v.logger.Debug(cfg.TLSMode)
+	// v.logger.Debug(cfg.Database)
+	// v.logger.Debug(cfg.User)
+	// v.logger.Debug(cfg.TLSMode)
 
 	password := tsdbReq.Datasource.DecryptedSecureJsonData["password"]
 
@@ -108,16 +155,20 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 	connDB, err := sql.Open("vertica", connStr)
 
 	if err != nil {
-		return buildErrorResponse(err), nil
+		return buildErrorResponse(queryArgs, err), nil
 	}
 
 	defer connDB.Close()
 
-	if err = connDB.PingContext(context.Background()); err != nil {
-		return buildErrorResponse(err), nil
+	rows, err := connDB.QueryContext(context.Background(), queryArgs.RawSQL)
+
+	if err != nil {
+		return buildErrorResponse(queryArgs, err), nil
 	}
 
-	return &datasource.DatasourceResponse{}, nil
+	defer rows.Close()
+
+	return v.buildQueryResponse(queryArgs, rows), nil
 }
 
 // Query - Determine what kind of query we're making
