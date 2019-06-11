@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -71,32 +72,49 @@ type GrafanaCommonRequest struct {
 	TenancyOCID string `json:"tenancyOCID"`
 }
 
+type configArgs struct {
+	User             string `json:"user"`
+	Database         string `json:"database"`
+	TLSMode          string `json:"tlsmode"`
+	UsePreparedStmts bool   `json:"usePreparedStatements"`
+}
+
+func buildErrorResponse(err error) *datasource.DatasourceResponse {
+	results := make([]*datasource.QueryResult, 1)
+	results[0] = &datasource.QueryResult{Error: err.Error()}
+	return &datasource.DatasourceResponse{Results: results}
+}
+
 func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
 	v.logger.Debug("Query", "datasource", tsdbReq.Datasource.Name, "TimeRange", tsdbReq.TimeRange)
 	v.logger.Debug(tsdbReq.String())
 	v.logger.Debug(tsdbReq.Queries[0].ModelJson)
-	v.logger.Debug(tsdbReq.GetDatasource().DecryptedSecureJsonData["password"])
-	v.logger.Debug(tsdbReq.GetDatasource().String())
+	v.logger.Debug(tsdbReq.Datasource.DecryptedSecureJsonData["password"])
+	v.logger.Debug(tsdbReq.Datasource.String())
 
-	decryptedInfo := tsdbReq.GetDatasource().DecryptedSecureJsonData
-	user := decryptedInfo["user"]
-	password := decryptedInfo["password"]
-	database := decryptedInfo["database"]
+	var cfg configArgs
+	json.Unmarshal([]byte(tsdbReq.Datasource.JsonData), &cfg)
 
-	connStr := fmt.Sprintf("vertica://%s:%s@%s/%s", user, password, tsdbReq.GetDatasource().GetUrl(), database)
+	v.logger.Debug(cfg.Database)
+	v.logger.Debug(cfg.User)
+	v.logger.Debug(cfg.TLSMode)
+
+	password := tsdbReq.Datasource.DecryptedSecureJsonData["password"]
+
+	connStr := fmt.Sprintf("vertica://%s:%s@%s/%s", cfg.User, password, tsdbReq.Datasource.Url, cfg.Database)
 
 	v.logger.Debug(connStr)
 
 	connDB, err := sql.Open("vertica", connStr)
 
 	if err != nil {
-		return &datasource.DatasourceResponse{
-			Results: [
-				datasource.QueryResult{
-					Error: err.Error(),
-				}
-			]
-		}
+		return buildErrorResponse(err), nil
+	}
+
+	defer connDB.Close()
+
+	if err = connDB.PingContext(context.Background()); err != nil {
+		return buildErrorResponse(err), nil
 	}
 
 	return &datasource.DatasourceResponse{}, nil
