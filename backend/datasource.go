@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"time"
+	"reflect"
 
 	"github.com/grafana/grafana_plugin_model/go/datasource"
 	hclog "github.com/hashicorp/go-hclog"
@@ -13,7 +13,9 @@ import (
 )
 
 //how often to refresh our compartmentID cache
-var cacheRefreshTime = time.Minute
+// var cacheRefreshTime = time.Minute
+
+const initialResultRowSize int32 = 2048
 
 //OCIDatasource - pulls in data from telemtry/various oci apis
 // type OCIDatasource struct {
@@ -76,6 +78,21 @@ type queryModel struct {
 	RefID        string `json:"redId"`
 }
 
+func appendTableRow(slice []*datasource.TableRow, newRow *datasource.TableRow) []*datasource.TableRow {
+	n := len(slice)
+	total := len(slice) + 1
+	if total > cap(slice) {
+		// Reallocate. Grow to 1.5 times the new size, so we can still grow.
+		newSize := total*3/2 + 1
+		newSlice := make([]*datasource.TableRow, total, newSize)
+		copy(newSlice, slice)
+		slice = newSlice
+	}
+	slice = slice[:total]
+	slice[n] = newRow
+	return slice
+}
+
 func buildErrorResponse(queryArgs queryModel, err error) *datasource.DatasourceResponse {
 	results := make([]*datasource.QueryResult, 1)
 	results[0] = &datasource.QueryResult{Error: err.Error(), RefId: queryArgs.RefID}
@@ -90,31 +107,81 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 
 	result.Tables[0] = &datasource.Table{
 		Columns: make([]*datasource.TableColumn, len(columns)),
+		Rows:    make([]*datasource.TableRow, 0, initialResultRowSize),
 	}
 
 	// Build columns
 	for ct := range columns {
 		result.Tables[0].Columns[ct] = &datasource.TableColumn{Name: columns[ct]}
-		//v.logger.Debug(columns[ct])
+		v.logger.Debug(fmt.Sprintf("column %d is %s", ct, columns[ct]))
 	}
 
-	// Builds rows
+	// Build rows
 	rowIn := make([]interface{}, len(columns))
+	for ct := range rowIn {
+		var ii interface{}
+		rowIn[ct] = &ii
+	}
+
+	v.logger.Debug(fmt.Sprintf("number of columns: %d", len(columns)))
+
 	for rows.Next() {
+
+		// Scan all values into a generic array of interface{}s.
 		rows.Scan(rowIn...)
 
-		//colTypes, _ := rows.ColumnTypes()
+		v.logger.Debug(fmt.Sprintf("%v", rowIn))
 
-		// rowOut := make([]*datasource.RowValue, len(columns))
+		// Figure out what the types are.
+		// colTypes, _ := rows.ColumnTypes()
 
-		//for _, colScan := range colTypes {
-		// v.logger.Debug(colScan.ScanType)
-		// switch(colScan.ScanType) {
-		// 	case reflect.
+		// Create a place where we can store the translated row.
+		rowOut := make([]*datasource.RowValue, len(columns))
+
+		for ct, colName := range columns {
+			var rawValue = *(rowIn[ct].(*interface{}))
+			var rawType = reflect.TypeOf(rawValue)
+
+			v.logger.Debug(fmt.Sprintf("col %d: %s type: %v", ct, colName, rawType))
+
+			switch rawType.String() {
+			case "string":
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: rawValue.(string)}
+			case "int64":
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_INT64, Int64Value: rawValue.(int64)}
+			case "bool":
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_BOOL, BoolValue: rawValue.(bool)}
+			case "float64":
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_DOUBLE, DoubleValue: rawValue.(float64)}
+			default:
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: "MISSING!"}
+			}
+
+			//fmt.Println(colName, raw_type, raw_value)
+		}
+
+		// Scan and map to each row value.
+		//for ct, colScan := range colTypes {
+
+		// switch colScan.ScanType().Kind() {
+		// case reflect.String:
+		// 	rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: rowIn[ct].(string)}
+		// case reflect.Int64:
+		// 	rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_INT64, Int64Value: rowIn[ct].(int64)}
+		// case reflect.Bool:
+		// 	rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_BOOL, BoolValue: rowIn[ct].(bool)}
+		// case reflect.Float64:
+		// 	rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_DOUBLE, DoubleValue: rowIn[ct].(float64)}
+		// default:
+		// 	rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: fmt.Sprintf("missing type %v", colScan.ScanType().Name())}
 		// }
-		//rowOut[ct] =
 		//}
+
+		//
+		result.Tables[0].Rows = appendTableRow(result.Tables[0].Rows, &datasource.TableRow{Values: rowOut})
 	}
+
+	v.logger.Debug(fmt.Sprintf("%v", result))
 }
 
 func (v *VerticaDatasource) buildQueryResponse(queryArgs queryModel, rows *sql.Rows) *datasource.DatasourceResponse {
