@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"reflect"
 
 	"github.com/grafana/grafana_plugin_model/go/datasource"
 	hclog "github.com/hashicorp/go-hclog"
@@ -72,10 +71,12 @@ type configArgs struct {
 }
 
 type queryModel struct {
-	DataSourceID string `json:"datasourceId"`
-	Format       string `json:"format"`
-	RawSQL       string `json:"rawSql"`
-	RefID        string `json:"redId"`
+	DataSourceID  string `json:"datasourceId"`
+	Format        string `json:"format"`
+	RawSQL        string `json:"rawSql"`
+	RefID         string `json:"refId"`
+	IntervalMS    uint64 `json:"intervalMs"`
+	MaxDataPoints uint64 `json:"maxDataPoints"`
 }
 
 func appendTableRow(slice []*datasource.TableRow, newRow *datasource.TableRow) []*datasource.TableRow {
@@ -100,7 +101,19 @@ func buildErrorResponse(queryArgs queryModel, err error) *datasource.DatasourceR
 	return &datasource.DatasourceResponse{Results: results}
 }
 
-func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult, rows *sql.Rows) {
+func (v *VerticaDatasource) buildSeriesTimeSeriesResult(result *datasource.QueryResult, rows *sql.Rows, rawSQL string) {
+	result.Series = make([]*datasource.TimeSeries, 1)
+
+	result.Series[0] = &datasource.TimeSeries{
+		Name:   "sample",
+		Tags:   make(map[string]string),
+		Points: make([]*datasource.Point, 0),
+	}
+
+	result.MetaJson = fmt.Sprintf("{\"rowCount\":%d,\"sql\":\"%s\"}", len(result.Series[0].Points), rawSQL)
+}
+
+func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult, rows *sql.Rows, rawSQL string) {
 	result.Tables = make([]*datasource.Table, 1)
 
 	columns, _ := rows.Columns()
@@ -113,7 +126,7 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 	// Build columns
 	for ct := range columns {
 		result.Tables[0].Columns[ct] = &datasource.TableColumn{Name: columns[ct]}
-		v.logger.Debug(fmt.Sprintf("column %d is %s", ct, columns[ct]))
+		//v.logger.Debug(fmt.Sprintf("column %d is %s", ct, columns[ct]))
 	}
 
 	// Build rows
@@ -138,59 +151,44 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 		// Create a place where we can store the translated row.
 		rowOut := make([]*datasource.RowValue, len(columns))
 
-		for ct, colName := range columns {
+		for ct, _ := range columns {
 			var rawValue = *(rowIn[ct].(*interface{}))
-			var rawType = reflect.TypeOf(rawValue)
+			//var rawType = reflect.TypeOf(rawValue)
 
-			v.logger.Debug(fmt.Sprintf("col %d: %s type: %v", ct, colName, rawType))
+			//v.logger.Debug(fmt.Sprintf("col %d: %s type: %v", ct, colName, rawType))
 
-			switch rawType.String() {
-			case "string":
-				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: rawValue.(string)}
-			case "int64":
-				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_INT64, Int64Value: rawValue.(int64)}
-			case "bool":
-				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_BOOL, BoolValue: rawValue.(bool)}
-			case "float64":
-				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_DOUBLE, DoubleValue: rawValue.(float64)}
+			switch val := rawValue.(type) {
+			case string:
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: val}
+			case int64:
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_INT64, Int64Value: val}
+			case bool:
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_BOOL, BoolValue: val}
+			case float64:
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_DOUBLE, DoubleValue: val}
 			default:
 				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: "MISSING!"}
 			}
-
-			//fmt.Println(colName, raw_type, raw_value)
 		}
 
-		// Scan and map to each row value.
-		//for ct, colScan := range colTypes {
-
-		// switch colScan.ScanType().Kind() {
-		// case reflect.String:
-		// 	rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: rowIn[ct].(string)}
-		// case reflect.Int64:
-		// 	rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_INT64, Int64Value: rowIn[ct].(int64)}
-		// case reflect.Bool:
-		// 	rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_BOOL, BoolValue: rowIn[ct].(bool)}
-		// case reflect.Float64:
-		// 	rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_DOUBLE, DoubleValue: rowIn[ct].(float64)}
-		// default:
-		// 	rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: fmt.Sprintf("missing type %v", colScan.ScanType().Name())}
-		// }
-		//}
-
-		//
 		result.Tables[0].Rows = appendTableRow(result.Tables[0].Rows, &datasource.TableRow{Values: rowOut})
 	}
 
-	v.logger.Debug(fmt.Sprintf("%v", result))
+	result.MetaJson = fmt.Sprintf("{\"rowCount\":%d,\"sql\":\"%s\"}", len(result.Tables[0].Rows), rawSQL)
 }
 
 func (v *VerticaDatasource) buildQueryResponse(queryArgs queryModel, rows *sql.Rows) *datasource.DatasourceResponse {
 	results := make([]*datasource.QueryResult, 1)
 	results[0] = &datasource.QueryResult{RefId: queryArgs.RefID}
 
+	v.logger.Debug("----")
+	v.logger.Debug(fmt.Sprintf("%v", queryArgs))
+
 	switch queryArgs.Format {
 	case "table":
-		v.buildTableQueryResult(results[0], rows)
+		v.buildTableQueryResult(results[0], rows, queryArgs.RawSQL)
+	case "time_series":
+		v.buildSeriesTimeSeriesResult(results[0], rows, queryArgs.RawSQL)
 	}
 
 	return &datasource.DatasourceResponse{Results: results}

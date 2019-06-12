@@ -128,8 +128,10 @@ export class VerticaDatasource {
   testDatasource() {
     return this.metricFindQuery('SELECT VERSION()', {})
       .then(res => {
-        this.instanceSettings.jsonData.verticaVersion = res[0].text;
-        return { status: 'success', message: 'Connection to ' + res[0].text + ' successful!' };
+        console.log(res)
+        //this.instanceSettings.jsonData.verticaVersion = res[0].text;
+        return { status: 'success', message: 'Connected!'};
+        //return { status: 'success', message: 'Connection to ' + res[0].text + ' successful!' };
       })
       .catch(err => {
         if (err.data && err.data.message) {

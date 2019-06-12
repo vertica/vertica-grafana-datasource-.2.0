@@ -3,11 +3,6 @@ import ResponseParser from './response_parser';
 import VerticaQuery from './vertica_query';
 
 export default class VerticaDatasource {
-//   id: number;
-//   name: string;
-//   instanceSettings: any;
-//   queryModel: VerticaQuery;
-//   responseParser: ResponseParser;
 
   constructor(instanceSettings, backendSrv, $q, templateSrv, timeSrv) {
     this.instanceSettings = instanceSettings;
@@ -131,7 +126,6 @@ export default class VerticaDatasource {
   testDatasource() {
     return this.metricFindQuery('SELECT VERSION()', {})
       .then(res => {
-        this.instanceSettings.jsonData.verticaVersion = res[0].text;
         return { status: 'success', message: 'Connection to ' + res[0].text + ' successful!' };
       })
       .catch(err => {
