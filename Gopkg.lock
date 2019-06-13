@@ -64,6 +64,19 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:9626814d13d29ac00b637a128cd516365100c440869c91100723dcdb7d08389c"
+  name = "github.com/vertica/vertica-sql-go"
+  packages = [
+    ".",
+    "common",
+    "logger",
+    "msgs",
+  ]
+  pruneopts = ""
+  revision = "2755936ec87bd37d2f0e07c049afcb09eae3eadc"
+
+[[projects]]
+  branch = "master"
   digest = "1:41055845ee2a3f0b0fbf94f12b7a6c5322ae66c166d192e38156e0d63a6e2993"
   name = "golang.org/x/net"
   packages = [
@@ -161,6 +174,7 @@
     "github.com/grafana/grafana_plugin_model/go/datasource",
     "github.com/hashicorp/go-hclog",
     "github.com/hashicorp/go-plugin",
+    "github.com/vertica/vertica-sql-go",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
