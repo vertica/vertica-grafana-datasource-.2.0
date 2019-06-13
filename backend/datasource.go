@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"time"
 
 	"github.com/grafana/grafana_plugin_model/go/datasource"
 	hclog "github.com/hashicorp/go-hclog"
@@ -151,11 +153,8 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 		// Create a place where we can store the translated row.
 		rowOut := make([]*datasource.RowValue, len(columns))
 
-		for ct, _ := range columns {
+		for ct := range columns {
 			var rawValue = *(rowIn[ct].(*interface{}))
-			//var rawType = reflect.TypeOf(rawValue)
-
-			//v.logger.Debug(fmt.Sprintf("col %d: %s type: %v", ct, colName, rawType))
 
 			switch val := rawValue.(type) {
 			case string:
@@ -166,8 +165,10 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_BOOL, BoolValue: val}
 			case float64:
 				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_DOUBLE, DoubleValue: val}
+			case time.Time:
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_INT64, Int64Value: val.UnixNano() / 1000000}
 			default:
-				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: "MISSING!"}
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: fmt.Sprintf("MISSING TYPE %v!", reflect.TypeOf(rawValue).Name())}
 			}
 		}
 
@@ -224,6 +225,14 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 	}
 
 	defer connDB.Close()
+
+	queryArgs.RawSQL, err = sanitizeAndInterpolateMacros(v.logger, queryArgs.RawSQL, tsdbReq)
+
+	if err != nil {
+		return buildErrorResponse(queryArgs, err), nil
+	}
+
+	v.logger.Debug("Sending query: " + queryArgs.RawSQL)
 
 	rows, err := connDB.QueryContext(context.Background(), queryArgs.RawSQL)
 
