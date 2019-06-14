@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -11,6 +12,15 @@ import (
 )
 
 const macroPattern = `\$(__[_a-zA-Z0-9]+)\(([^\)]*)\)`
+
+func jsonEscape(i string) string {
+	b, err := json.Marshal(i)
+	if err != nil {
+		panic(err)
+	}
+	s := string(b)
+	return s[1 : len(s)-1]
+}
 
 func replaceAllStringSubmatchFunc(re *regexp.Regexp, str string, repl func([]string) string) string {
 	result := ""

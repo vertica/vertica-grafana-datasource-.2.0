@@ -112,7 +112,7 @@ func (v *VerticaDatasource) buildSeriesTimeSeriesResult(result *datasource.Query
 		Points: make([]*datasource.Point, 0),
 	}
 
-	result.MetaJson = fmt.Sprintf("{\"rowCount\":%d,\"sql\":\"%s\"}", len(result.Series[0].Points), rawSQL)
+	result.MetaJson = fmt.Sprintf("{\"rowCount\":%d,\"sql\":\"%s\"}", len(result.Series[0].Points), jsonEscape(rawSQL))
 }
 
 func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult, rows *sql.Rows, rawSQL string) {
@@ -175,7 +175,7 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 		result.Tables[0].Rows = appendTableRow(result.Tables[0].Rows, &datasource.TableRow{Values: rowOut})
 	}
 
-	result.MetaJson = fmt.Sprintf("{\"rowCount\":%d,\"sql\":\"%s\"}", len(result.Tables[0].Rows), rawSQL)
+	result.MetaJson = fmt.Sprintf("{\"rowCount\":%d,\"sql\":\"%s\"}", len(result.Tables[0].Rows), jsonEscape(rawSQL))
 }
 
 func (v *VerticaDatasource) buildQueryResponse(queryArgs queryModel, rows *sql.Rows) *datasource.DatasourceResponse {

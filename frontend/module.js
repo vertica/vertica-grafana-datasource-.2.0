@@ -16,7 +16,7 @@ class EmptyQueryCtrl extends QueryCtrl {
     this.target = this.target
     this.target.format = 'table';
     this.target.rawSql = 'SELECT \n\
-    end_time as time, \n\
+    $__time(end_time), \n\
     average_cpu_usage_percent \n\
     FROM \n\
     v_monitor.cpu_usage \n\
