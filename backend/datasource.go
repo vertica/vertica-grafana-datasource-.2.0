@@ -13,21 +13,7 @@ import (
 	_ "github.com/vertica/vertica-sql-go"
 )
 
-//how often to refresh our compartmentID cache
-// var cacheRefreshTime = time.Minute
-
 const initialResultRowSize int32 = 2048
-
-//OCIDatasource - pulls in data from telemtry/various oci apis
-// type OCIDatasource struct {
-// 	plugin.NetRPCUnsupportedPlugin
-// 	metricsClient    monitoring.MonitoringClient
-// 	identityClient   identity.IdentityClient
-// 	config           common.ConfigurationProvider
-// 	logger           hclog.Logger
-// 	nameToOCID       map[string]string
-// 	timeCacheUpdated time.Time
-// }
 
 type VerticaDatasource struct {
 	logger hclog.Logger
@@ -85,7 +71,6 @@ func appendTableRow(slice []*datasource.TableRow, newRow *datasource.TableRow) [
 	n := len(slice)
 	total := len(slice) + 1
 	if total > cap(slice) {
-		// Reallocate. Grow to 1.5 times the new size, so we can still grow.
 		newSize := total*3/2 + 1
 		newSlice := make([]*datasource.TableRow, total, newSize)
 		copy(newSlice, slice)
@@ -96,7 +81,9 @@ func appendTableRow(slice []*datasource.TableRow, newRow *datasource.TableRow) [
 	return slice
 }
 
-func buildErrorResponse(queryArgs queryModel, err error) *datasource.DatasourceResponse {
+func (v *VerticaDatasource) buildErrorResponse(queryArgs queryModel, err error) *datasource.DatasourceResponse {
+	v.logger.Error(err.Error())
+
 	results := make([]*datasource.QueryResult, 1)
 	results[0] = &datasource.QueryResult{Error: err.Error(), RefId: queryArgs.RefID}
 
@@ -138,17 +125,10 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 		rowIn[ct] = &ii
 	}
 
-	v.logger.Debug(fmt.Sprintf("number of columns: %d", len(columns)))
-
 	for rows.Next() {
 
 		// Scan all values into a generic array of interface{}s.
 		rows.Scan(rowIn...)
-
-		v.logger.Debug(fmt.Sprintf("%v", rowIn))
-
-		// Figure out what the types are.
-		// colTypes, _ := rows.ColumnTypes()
 
 		// Create a place where we can store the translated row.
 		rowOut := make([]*datasource.RowValue, len(columns))
@@ -182,7 +162,6 @@ func (v *VerticaDatasource) buildQueryResponse(queryArgs queryModel, rows *sql.R
 	results := make([]*datasource.QueryResult, 1)
 	results[0] = &datasource.QueryResult{RefId: queryArgs.RefID}
 
-	v.logger.Debug("----")
 	v.logger.Debug(fmt.Sprintf("%v", queryArgs))
 
 	switch queryArgs.Format {
@@ -196,11 +175,7 @@ func (v *VerticaDatasource) buildQueryResponse(queryArgs queryModel, rows *sql.R
 }
 
 func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
-	v.logger.Debug("Query", "datasource", tsdbReq.Datasource.Name, "TimeRange", tsdbReq.TimeRange)
-	v.logger.Debug(tsdbReq.String())
-	v.logger.Debug(tsdbReq.Queries[0].ModelJson)
-	v.logger.Debug(tsdbReq.Datasource.DecryptedSecureJsonData["password"])
-	v.logger.Debug(tsdbReq.Datasource.String())
+	v.logger.Debug(fmt.Sprintf("*** QUERY(): %v", tsdbReq))
 
 	var queryArgs queryModel
 	json.Unmarshal([]byte(tsdbReq.Queries[0].ModelJson), &queryArgs)
@@ -208,20 +183,14 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 	var cfg configArgs
 	json.Unmarshal([]byte(tsdbReq.Datasource.JsonData), &cfg)
 
-	// v.logger.Debug(cfg.Database)
-	// v.logger.Debug(cfg.User)
-	// v.logger.Debug(cfg.TLSMode)
-
 	password := tsdbReq.Datasource.DecryptedSecureJsonData["password"]
 
 	connStr := fmt.Sprintf("vertica://%s:%s@%s/%s", cfg.User, password, tsdbReq.Datasource.Url, cfg.Database)
 
-	v.logger.Debug(connStr)
-
 	connDB, err := sql.Open("vertica", connStr)
 
 	if err != nil {
-		return buildErrorResponse(queryArgs, err), nil
+		return v.buildErrorResponse(queryArgs, err), nil
 	}
 
 	defer connDB.Close()
@@ -229,15 +198,13 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 	queryArgs.RawSQL, err = sanitizeAndInterpolateMacros(v.logger, queryArgs.RawSQL, tsdbReq)
 
 	if err != nil {
-		return buildErrorResponse(queryArgs, err), nil
+		return v.buildErrorResponse(queryArgs, err), nil
 	}
-
-	v.logger.Debug("Sending query: " + queryArgs.RawSQL)
 
 	rows, err := connDB.QueryContext(context.Background(), queryArgs.RawSQL)
 
 	if err != nil {
-		return buildErrorResponse(queryArgs, err), nil
+		return v.buildErrorResponse(queryArgs, err), nil
 	}
 
 	defer rows.Close()

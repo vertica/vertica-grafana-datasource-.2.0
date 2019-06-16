@@ -3,9 +3,9 @@
     "id": "vertica-datasource",
     "type": "datasource",
     "category": "sql",
-    "metrics": true,
-    "annotations": false,
-    "alerting": false,
+    "metrics": false,
+    "annotations": true,
+    "alerting": true,
     "backend": true,
     "executable": "vertica-plugin",
   
