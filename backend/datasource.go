@@ -170,11 +170,15 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 
 	connDB, err := sql.Open("vertica", connStr)
 
-	// if err != nil {
-	// 	return v.buildErrorResponse(queryArgs, err), nil
-	// }
+	if err != nil {
+		return nil, fmt.Errorf("error with connection string: %v", err.Error())
+	}
 
 	defer connDB.Close()
+
+	if err = connDB.PingContext(context.Background()); err != nil {
+		return nil, fmt.Errorf("error connecting to Vertica instance: %v", err.Error())
+	}
 
 	// Prepare to populate these query results.
 	results := make([]*datasource.QueryResult, len(tsdbReq.Queries))
@@ -185,28 +189,41 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 
 		results[ct] = &datasource.QueryResult{RefId: queryArgs.RefID}
 
+		if queryArgs.Format == "time_series" {
+			results[ct].Error = "time_series not supported"
+			continue
+		}
+
 		queryArgs.RawSQL, err = sanitizeAndInterpolateMacros(v.logger, queryArgs.RawSQL, tsdbReq)
 
 		if err != nil {
-			results[ct] = &datasource.QueryResult{Error: err.Error(), RefId: queryArgs.RefID}
+			results[ct].Error = err.Error()
 			continue
 		}
 
 		rows, err := connDB.QueryContext(context.Background(), queryArgs.RawSQL)
 
 		if err != nil {
-			results[ct] = &datasource.QueryResult{Error: err.Error(), RefId: queryArgs.RefID}
+			results[ct].Error = err.Error()
 			continue
 		}
 
 		defer rows.Close()
 
-		switch queryArgs.Format {
-		case "table":
-			v.buildTableQueryResult(results[ct], rows, queryArgs.RawSQL)
-		case "time_series":
-			v.buildSeriesTimeSeriesResult(results[ct], rows, queryArgs.RawSQL)
-		}
+		v.buildTableQueryResult(results[ct], rows, queryArgs.RawSQL)
+
+		// switch queryArgs.Format {
+		// case "table":
+		// 	v.buildTableQueryResult(results[ct], rows, queryArgs.RawSQL)
+		// case "time_series":
+		// 	v.logger.Debug("HERE at time_series")
+		// 	results[ct].Error = "time_series not supported"
+		// 	continue
+		// default:
+		// 	v.logger.Debug("unsupported format: " + queryArgs.Format)
+
+		//v.buildSeriesTimeSeriesResult(results[ct], rows, queryArgs.RawSQL)
+		//}
 	}
 
 	return &datasource.DatasourceResponse{Results: results}, nil

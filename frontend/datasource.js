@@ -5,6 +5,7 @@ import VerticaQuery from './vertica_query';
 export default class VerticaDatasource {
 
   constructor(instanceSettings, backendSrv, $q, templateSrv, timeSrv) {
+    this.target = this.target
     this.instanceSettings = instanceSettings;
     this.backendSrv = backendSrv;
     this.q = $q;
