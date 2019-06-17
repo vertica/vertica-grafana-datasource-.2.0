@@ -23,34 +23,6 @@ func newVerticaDatasource(aLogger hclog.Logger) (*VerticaDatasource, error) {
 	return &VerticaDatasource{logger: aLogger}, nil
 }
 
-// GrafanaOCIRequest - Query Request comning in from the front end
-// type GrafanaOCIRequest struct {
-// 	GrafanaCommonRequest
-// 	Query      string
-// 	Resolution string
-// 	Namespace  string
-// }
-
-//GrafanaSearchRequest incoming request body for search requests
-// type GrafanaSearchRequest struct {
-// 	GrafanaCommonRequest
-// 	Metric    string `json:"metric,omitempty"`
-// 	Namespace string
-// }
-
-// type GrafanaCompartmentRequest struct {
-// 	GrafanaCommonRequest
-// }
-
-// GrafanaCommonRequest - captures the common parts of the search and metricsRequests
-type GrafanaCommonRequest struct {
-	Compartment string
-	Environment string
-	QueryType   string
-	Region      string
-	TenancyOCID string `json:"tenancyOCID"`
-}
-
 type configArgs struct {
 	User             string `json:"user"`
 	Database         string `json:"database"`
@@ -59,12 +31,10 @@ type configArgs struct {
 }
 
 type queryModel struct {
-	DataSourceID  string `json:"datasourceId"`
-	Format        string `json:"format"`
-	RawSQL        string `json:"rawSql"`
-	RefID         string `json:"refId"`
-	IntervalMS    uint64 `json:"intervalMs"`
-	MaxDataPoints uint64 `json:"maxDataPoints"`
+	DataSourceID string `json:"datasourceId"`
+	Format       string `json:"format"`
+	RawSQL       string `json:"rawSql"`
+	RefID        string `json:"refId"`
 }
 
 func appendTableRow(slice []*datasource.TableRow, newRow *datasource.TableRow) []*datasource.TableRow {
