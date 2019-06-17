@@ -81,11 +81,11 @@ func appendTableRow(slice []*datasource.TableRow, newRow *datasource.TableRow) [
 	return slice
 }
 
-func (v *VerticaDatasource) buildErrorResponse(queryArgs queryModel, err error) *datasource.DatasourceResponse {
+func (v *VerticaDatasource) buildErrorResponse(refID string, err error) *datasource.DatasourceResponse {
 	v.logger.Error(err.Error())
 
 	results := make([]*datasource.QueryResult, 1)
-	results[0] = &datasource.QueryResult{Error: err.Error(), RefId: queryArgs.RefID}
+	results[0] = &datasource.QueryResult{Error: err.Error(), RefId: refID}
 
 	return &datasource.DatasourceResponse{Results: results}
 }
@@ -158,27 +158,8 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 	result.MetaJson = fmt.Sprintf("{\"rowCount\":%d,\"sql\":\"%s\"}", len(result.Tables[0].Rows), jsonEscape(rawSQL))
 }
 
-func (v *VerticaDatasource) buildQueryResponse(queryArgs queryModel, rows *sql.Rows) *datasource.DatasourceResponse {
-	results := make([]*datasource.QueryResult, 1)
-	results[0] = &datasource.QueryResult{RefId: queryArgs.RefID}
-
-	v.logger.Debug(fmt.Sprintf("%v", queryArgs))
-
-	switch queryArgs.Format {
-	case "table":
-		v.buildTableQueryResult(results[0], rows, queryArgs.RawSQL)
-	case "time_series":
-		v.buildSeriesTimeSeriesResult(results[0], rows, queryArgs.RawSQL)
-	}
-
-	return &datasource.DatasourceResponse{Results: results}
-}
-
 func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
 	v.logger.Debug(fmt.Sprintf("*** QUERY(): %v", tsdbReq))
-
-	var queryArgs queryModel
-	json.Unmarshal([]byte(tsdbReq.Queries[0].ModelJson), &queryArgs)
 
 	var cfg configArgs
 	json.Unmarshal([]byte(tsdbReq.Datasource.JsonData), &cfg)
@@ -189,27 +170,46 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 
 	connDB, err := sql.Open("vertica", connStr)
 
-	if err != nil {
-		return v.buildErrorResponse(queryArgs, err), nil
-	}
+	// if err != nil {
+	// 	return v.buildErrorResponse(queryArgs, err), nil
+	// }
 
 	defer connDB.Close()
 
-	queryArgs.RawSQL, err = sanitizeAndInterpolateMacros(v.logger, queryArgs.RawSQL, tsdbReq)
+	// Prepare to populate these query results.
+	results := make([]*datasource.QueryResult, len(tsdbReq.Queries))
 
-	if err != nil {
-		return v.buildErrorResponse(queryArgs, err), nil
+	for ct, query := range tsdbReq.Queries {
+		var queryArgs queryModel
+		json.Unmarshal([]byte(query.ModelJson), &queryArgs)
+
+		results[ct] = &datasource.QueryResult{RefId: queryArgs.RefID}
+
+		queryArgs.RawSQL, err = sanitizeAndInterpolateMacros(v.logger, queryArgs.RawSQL, tsdbReq)
+
+		if err != nil {
+			results[ct] = &datasource.QueryResult{Error: err.Error(), RefId: queryArgs.RefID}
+			continue
+		}
+
+		rows, err := connDB.QueryContext(context.Background(), queryArgs.RawSQL)
+
+		if err != nil {
+			results[ct] = &datasource.QueryResult{Error: err.Error(), RefId: queryArgs.RefID}
+			continue
+		}
+
+		defer rows.Close()
+
+		switch queryArgs.Format {
+		case "table":
+			v.buildTableQueryResult(results[ct], rows, queryArgs.RawSQL)
+		case "time_series":
+			v.buildSeriesTimeSeriesResult(results[ct], rows, queryArgs.RawSQL)
+		}
 	}
 
-	rows, err := connDB.QueryContext(context.Background(), queryArgs.RawSQL)
-
-	if err != nil {
-		return v.buildErrorResponse(queryArgs, err), nil
-	}
-
-	defer rows.Close()
-
-	return v.buildQueryResponse(queryArgs, rows), nil
+	return &datasource.DatasourceResponse{Results: results}, nil
 }
 
 // Query - Determine what kind of query we're making
