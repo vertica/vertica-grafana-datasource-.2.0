@@ -179,16 +179,18 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 			continue
 		}
 
-		rows, err := connDB.QueryContext(context.Background(), queryArgs.RawSQL)
+		if len(queryArgs.RawSQL) > 0 {
+			rows, err := connDB.QueryContext(context.Background(), queryArgs.RawSQL)
 
-		if err != nil {
-			response.Results[ct].Error = err.Error()
-			continue
+			if err != nil {
+				response.Results[ct].Error = err.Error()
+				continue
+			}
+
+			defer rows.Close()
+
+			v.buildTableQueryResult(response.Results[ct], rows, queryArgs.RawSQL)
 		}
-
-		defer rows.Close()
-
-		v.buildTableQueryResult(response.Results[ct], rows, queryArgs.RawSQL)
 	}
 
 	return response, nil
