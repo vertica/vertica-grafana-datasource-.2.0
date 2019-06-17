@@ -166,67 +166,62 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 
 	password := tsdbReq.Datasource.DecryptedSecureJsonData["password"]
 
+	response := &datasource.DatasourceResponse{Results: make([]*datasource.QueryResult, len(tsdbReq.Queries))}
+	for ct := range response.Results {
+		response.Results[ct] = &datasource.QueryResult{}
+	}
+
 	connStr := fmt.Sprintf("vertica://%s:%s@%s/%s", cfg.User, password, tsdbReq.Datasource.Url, cfg.Database)
 
 	connDB, err := sql.Open("vertica", connStr)
 
 	if err != nil {
-		return nil, fmt.Errorf("error with connection string: %v", err.Error())
+		for _, result := range response.Results {
+			result.Error = err.Error()
+		}
+		return response, nil
 	}
 
 	defer connDB.Close()
 
 	if err = connDB.PingContext(context.Background()); err != nil {
-		return nil, fmt.Errorf("error connecting to Vertica instance: %v", err.Error())
+		for _, result := range response.Results {
+			result.Error = err.Error()
+		}
+		return response, nil
 	}
-
-	// Prepare to populate these query results.
-	results := make([]*datasource.QueryResult, len(tsdbReq.Queries))
 
 	for ct, query := range tsdbReq.Queries {
 		var queryArgs queryModel
 		json.Unmarshal([]byte(query.ModelJson), &queryArgs)
 
-		results[ct] = &datasource.QueryResult{RefId: queryArgs.RefID}
+		response.Results[ct].RefId = queryArgs.RefID
 
 		if queryArgs.Format == "time_series" {
-			results[ct].Error = "time_series not supported"
+			response.Results[ct].Error = "time_series not supported"
 			continue
 		}
 
 		queryArgs.RawSQL, err = sanitizeAndInterpolateMacros(v.logger, queryArgs.RawSQL, tsdbReq)
 
 		if err != nil {
-			results[ct].Error = err.Error()
+			response.Results[ct].Error = err.Error()
 			continue
 		}
 
 		rows, err := connDB.QueryContext(context.Background(), queryArgs.RawSQL)
 
 		if err != nil {
-			results[ct].Error = err.Error()
+			response.Results[ct].Error = err.Error()
 			continue
 		}
 
 		defer rows.Close()
 
-		v.buildTableQueryResult(results[ct], rows, queryArgs.RawSQL)
-
-		// switch queryArgs.Format {
-		// case "table":
-		// 	v.buildTableQueryResult(results[ct], rows, queryArgs.RawSQL)
-		// case "time_series":
-		// 	v.logger.Debug("HERE at time_series")
-		// 	results[ct].Error = "time_series not supported"
-		// 	continue
-		// default:
-		// 	v.logger.Debug("unsupported format: " + queryArgs.Format)
-
-		//v.buildSeriesTimeSeriesResult(results[ct], rows, queryArgs.RawSQL)
-		//}
+		v.buildTableQueryResult(response.Results[ct], rows, queryArgs.RawSQL)
 	}
 
-	return &datasource.DatasourceResponse{Results: results}, nil
+	return response, nil
 }
 
 // Query - Determine what kind of query we're making

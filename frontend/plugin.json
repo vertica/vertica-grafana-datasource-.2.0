@@ -3,7 +3,7 @@
     "id": "vertica-datasource",
     "type": "datasource",
     "category": "sql",
-    "metrics": false,
+    "metrics": true,
     "annotations": true,
     "alerting": true,
     "backend": true,
