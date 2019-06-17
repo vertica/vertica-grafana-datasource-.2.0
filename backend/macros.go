@@ -64,20 +64,14 @@ func sanitizeAndInterpolateMacros(aLogger hclog.Logger, rawSQL string, tsdbReq *
 
 	regex, err := regexp.Compile(macroPattern)
 
-	// Clean up sequences that can mess with return metadata.
-	// rawSQL = strings.Replace(rawSQL, "\t", " ", len(rawSQL))
-	// rawSQL = strings.Replace(rawSQL, "\n", " ", len(rawSQL))
-
 	if err != nil {
-		aLogger.Debug(err.Error())
+		aLogger.Error(err.Error())
 		return rawSQL, err
 	}
 
 	// Replace macros
 	// TODO: propagate errors
 	sql := replaceAllStringSubmatchFunc(regex, rawSQL, func(groups []string) string {
-
-		aLogger.Debug(fmt.Sprintf("%v", groups))
 
 		args := strings.Split(groups[2], ",")
 		for i, arg := range args {
@@ -86,7 +80,7 @@ func sanitizeAndInterpolateMacros(aLogger hclog.Logger, rawSQL string, tsdbReq *
 		res, err := evaluateMacro(groups[1], args, tsdbReq.GetTimeRange())
 
 		if err != nil {
-			aLogger.Debug(err.Error())
+			aLogger.Error(err.Error())
 			return "macro_error()"
 		}
 
