@@ -4,7 +4,6 @@ import ResponseParser from './response_parser';
 export default class VerticaDatasource {
 
   constructor(instanceSettings, backendSrv, $q, templateSrv, timeSrv) {
-    // this.target = this.target
     this.instanceSettings = instanceSettings;
     this.backendSrv = backendSrv;
     this.q = $q;
@@ -21,7 +20,7 @@ export default class VerticaDatasource {
       return {
         refId: target.refId,
         datasourceId: this.id,
-        rawSql: target.rawSql,
+        rawSql: this.templateSrv.replace(target.rawSql),
         format: target.format,
       };
     })
