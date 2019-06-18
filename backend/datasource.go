@@ -107,22 +107,16 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 			var rawValue = *(rowIn[ct].(*interface{}))
 
 			switch val := rawValue.(type) {
-			case sql.NullString:
-				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING}
+			case sql.NullString, sql.NullBool, sql.NullFloat64, sql.NullInt64:
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_NULL}
 			case string:
 				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: val}
-			case sql.NullInt64:
-				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_INT64}
 			case int:
 				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_INT64, Int64Value: int64(val)}
 			case int64:
 				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_INT64, Int64Value: val}
-			case sql.NullBool:
-				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_BOOL}
 			case bool:
 				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_BOOL, BoolValue: val}
-			case sql.NullFloat64:
-				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_DOUBLE}
 			case float64:
 				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_DOUBLE, DoubleValue: val}
 			case time.Time:
