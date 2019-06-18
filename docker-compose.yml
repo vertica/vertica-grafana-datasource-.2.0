@@ -7,6 +7,6 @@ services:
       GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-worldmap-panel"
     #   GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s/grafana/"
     volumes:
-      - ./dist:/var/lib/grafana/plugins/vertica
+      - ./dist:/var/lib/grafana/plugins/vertica-datasource
     ports:
       - "30000:3000"

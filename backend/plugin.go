@@ -1,9 +1,6 @@
 package main
 
 import (
-	"bufio"
-	"os"
-
 	"github.com/grafana/grafana_plugin_model/go/datasource"
 	hclog "github.com/hashicorp/go-hclog"
 	plugin "github.com/hashicorp/go-plugin"
@@ -11,16 +8,17 @@ import (
 
 func main() {
 
-	f, err := os.Create("/home/ambival/log.txt")
+	// f, err := os.Create("/var/log.txt")
 
-	if err != nil {
-		os.Exit(0)
-	}
+	// if err != nil {
+	// 	os.Exit(0)
+	// }
 
 	var logger = hclog.New(&hclog.LoggerOptions{
-		Name:   "vertica-grafana-plugin",
-		Level:  hclog.LevelFromString("DEBUG"),
-		Output: bufio.NewWriter(f),
+		Name:  "vertica-grafana-plugin",
+		Level: hclog.LevelFromString("DEBUG"),
+		// Output: bufio.NewWriter(f),
+		// Output: ,
 	})
 
 	logger.Debug("Starting Vertica datasource plugin")
