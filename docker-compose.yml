@@ -1,0 +1,12 @@
+version: '2.1'
+services:
+  grafana:
+    image: grafana/grafana:${GRAFANA_VERSION:-latest}
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_PASSWORD:-n0v3ll}
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-worldmap-panel"
+    #   GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s/grafana/"
+    volumes:
+      - ./dist:/var/lib/grafana/plugins/vertica
+    ports:
+      - "30000:3000"

@@ -34,3 +34,4 @@ node_modules
 dist/oci-plugin_*
 coverage/
 dist/
+.env
