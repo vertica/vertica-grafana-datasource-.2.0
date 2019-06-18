@@ -7,7 +7,7 @@ It defines a new datsource that communicates with Vertica using the Vertica gola
 
 ## Setting Up Your Development Environment
 
-1. Set up a Go development environment with appropriate GOROOT and GOPATH envrionment variables.
+1. Set up a Go development environment with the appropriate GOROOT and GOPATH envrionment variables.
 2. Download Grafana itself and build it per their instructions. [http://github.com/grafana/grafana]
 3. Install npm [http://nodejs.org]
 4. Install dep [https://github.com/golang/dep]
@@ -17,6 +17,21 @@ It defines a new datsource that communicates with Vertica using the Vertica gola
 ```
 ln -s (this_dir)/dist (grafana_dir)/data/plugins/vertica-datasource 
 ```
+
+## Using Grafana Docker Image
+
+It is possible to run the [grafana/grafana](https://hub.docker.com/r/grafana/grafana) Docker image instead of a local grafana-server binary.
+
+1. Build the drivers source
+   * `dep ensure`
+   * `./build.sh`
+1. Start the grafana Docker image
+   * `docker-compose up -d`
+1. Confirm that server has started
+   * `docker-compose logs`
+1. Open web browser to [localhost:30000/](http://localhost:30000/)
+1. Cleanup the container, after testing
+   * `docker-compose down -v`
 
 ## Rapid Development Cycle
 
