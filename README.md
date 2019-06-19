@@ -24,7 +24,16 @@ It is possible to run the [grafana/grafana](https://hub.docker.com/r/grafana/gra
 
 1. Build the drivers source
    * `dep ensure`
-   * `./build.sh`
+   * Building on Linux?
+      ```
+      ./build.sh
+      ```
+   * Otherwise
+      ```
+      cd backend
+      GOOS=linux go build -o ../dist/vertica-plugin_linux_amd64
+      cd ..
+      ```
 1. Start the grafana Docker image
    * `docker-compose up -d`
 1. Confirm that server has started
