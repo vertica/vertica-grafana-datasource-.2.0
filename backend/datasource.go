@@ -145,8 +145,7 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 
 	result.Series = make([]*datasource.TimeSeries, 1)
 	result.Series[0] = &datasource.TimeSeries{
-		Name: result.GetRefId(),
-		//Tags:   map[string]string{},
+		Name:   columns[1],
 		Points: make([]*datasource.Point, 0, initialResultTimeSeriesSize),
 	}
 
