@@ -45,7 +45,7 @@ func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) 
 		if len(args) == 0 {
 			return "", fmt.Errorf("missing time column argument for macro %v", name)
 		}
-		return fmt.Sprintf("%s AS \"time\"", args[0]), nil
+		return fmt.Sprintf("%s AS Time", args[0]), nil
 	case "__timeFilter":
 		if len(args) == 0 {
 			return "", fmt.Errorf("missing time column argument for macro %v", name)

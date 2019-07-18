@@ -8,7 +8,7 @@ import (
 
 func main() {
 
-	// f, err := os.Create("/var/log.txt")
+	// f, err := os.Create("/home/ambival/log.txt")
 
 	// if err != nil {
 	// 	os.Exit(0)
@@ -17,7 +17,7 @@ func main() {
 	var logger = hclog.New(&hclog.LoggerOptions{
 		Name:  "vertica-grafana-plugin",
 		Level: hclog.LevelFromString("DEBUG"),
-		// Output: bufio.NewWriter(f),
+		//Output: bufio.NewWriter(f),
 	})
 
 	logger.Debug("Starting Vertica datasource plugin")

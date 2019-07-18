@@ -7,7 +7,8 @@ export class VerticaQueryCtrl extends QueryCtrl {
       super($scope, $injector);
   
       this.target = this.target
-      this.target.format = 'table';
+      this.target.format = this.target.format || 'time_series';
+      this.formats = [{text:'Time Series', value:'time_series'}, {text:'Table', value:'table'}]
       this.target.rawSql = this.target.rawSql || 'SELECT \n\
 $__time(end_time), \n\
 average_cpu_usage_percent \n\
