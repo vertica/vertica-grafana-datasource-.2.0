@@ -21,19 +21,10 @@ export default class VerticaDatasource {
     var newTargets = options.targets
 
     const queries = newTargets.map((target) => {
-
-      // console.log("*******")
-      // console.log(target)
-      // console.log(target["rawSql"])
-      // console.log("refId: ", target.refId)
-      // console.log("rawSQL (in):  ", target.rawSql)
-      // console.log("rawSQL (out): ", this.templateSrv.replace(target.rawSql))
-
       return {
         refId: target.refId,
         datasourceId: this.id,
-        rawSql: "SELECT \n$__time(end_time), \naverage_cpu_usage_percent \nFROM \nv_monitor.cpu_usage \nWHERE \n$__timeFilter(end_time)",
-        //rawSql: this.templateSrv.replace(target.rawSql),
+        rawSql: this.templateSrv.replace(target.rawSql),
         format: target.format,
       };
     })

@@ -6,7 +6,7 @@ export class VerticaQueryCtrl extends QueryCtrl {
     constructor($scope, $injector, templateSrv, $q, uiSegmentSrv) {
       super($scope, $injector);
   
-      this.target = this.target
+      this.target = this.target || {}
       this.target.format = this.target.format || 'time_series';
       this.formats = [{text:'Time Series', value:'time_series'}, {text:'Table', value:'table'}]
       this.target.rawSql = this.target.rawSql || 'SELECT \n\
