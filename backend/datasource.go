@@ -13,8 +13,9 @@ import (
 	_ "github.com/vertica/vertica-sql-go"
 )
 
-const initialResultRowSize int32 = 2048
-const initialResultTimeSeriesSize int32 = 8192
+const initialResultRowCapacity int32 = 2048
+const initialResultTimeSeriesCapacity int32 = 8192
+const initialSeriesCapacity int32 = 32
 
 // VerticaDatasource is a wrapper for the data source instance as a whole.
 type VerticaDatasource struct {
@@ -67,6 +68,20 @@ func appendMetricPoint(slice []*datasource.Point, timestamp int64, value float64
 	return slice
 }
 
+func appendNewSeries(slice []*datasource.TimeSeries, seriesName string) []*datasource.TimeSeries {
+	n := len(slice)
+	total := len(slice) + 1
+	if total > cap(slice) {
+		newSize := total*3/2 + 1
+		newSlice := make([]*datasource.TimeSeries, total, newSize)
+		copy(newSlice, slice)
+		slice = newSlice
+	}
+	slice = slice[:total]
+	slice[n] = &datasource.TimeSeries{Name: seriesName, Points: make([]*datasource.Point, 0, initialResultTimeSeriesCapacity)}
+	return slice
+}
+
 func (v *VerticaDatasource) buildErrorResponse(refID string, err error) *datasource.DatasourceResponse {
 	v.logger.Error(err.Error())
 
@@ -83,7 +98,7 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 
 	result.Tables[0] = &datasource.Table{
 		Columns: make([]*datasource.TableColumn, len(columns)),
-		Rows:    make([]*datasource.TableRow, 0, initialResultRowSize),
+		Rows:    make([]*datasource.TableRow, 0, initialResultRowCapacity),
 	}
 
 	// Build columns
@@ -137,24 +152,22 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 
 func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryResult, rows *sql.Rows, rawSQL string) error {
 
+	v.logger.Debug("stop 1")
+
 	columns, _ := rows.Columns()
+	numColumns := len(columns)
 
-	numSeries := len(columns) - 1
-
-	if numSeries < 1 {
-		return fmt.Errorf("time series queries must return at least two columns (%d returned)", len(columns))
+	timeIndex := containsString("time", columns)
+	if timeIndex == -1 {
+		return fmt.Errorf("time series must contain a column called 'time' containing the metric's time")
 	}
+	v.logger.Debug("stop 2")
+	metricIndex := containsString("metric", columns)
+	prefixSeriesName := metricIndex >= 0 && numColumns > 3
 
 	// Create the output series arrays for every columns.
-	result.Series = make([]*datasource.TimeSeries, numSeries)
-
-	for ct := 0; ct < numSeries; ct++ {
-		result.Series[ct] = &datasource.TimeSeries{
-			Name:   columns[ct+1],
-			Points: make([]*datasource.Point, 0, initialResultTimeSeriesSize),
-		}
-	}
-
+	result.Series = make([]*datasource.TimeSeries, 0, initialSeriesCapacity)
+	v.logger.Debug("stop 3")
 	// Build row holder
 	rowIn := make([]interface{}, len(columns))
 	for ct := range rowIn {
@@ -162,7 +175,9 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 		rowIn[ct] = &ii
 	}
 
-	// TODO: optimize this
+	// Build series map
+	seriesIndexMap := make(map[string]int)
+	v.logger.Debug("stop 4")
 	for rows.Next() {
 
 		// Scan all values into a generic array of interface{}s.
@@ -171,8 +186,8 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 		var timestampInt int64
 		var valueFloat float64
 
-		// Get timestamp column
-		switch val := (*(rowIn[0].(*interface{}))).(type) {
+		// Get the timestamp value.
+		switch val := (*(rowIn[timeIndex].(*interface{}))).(type) {
 		case time.Time:
 			timestampInt = val.UnixNano() / 1000000
 		case int:
@@ -182,10 +197,16 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 		default:
 			return fmt.Errorf("timestamp column must be either a timestamp or an integer")
 		}
+		v.logger.Debug("stop 5")
+		for ct := 0; ct < numColumns; ct++ {
 
-		for ct := 0; ct < numSeries; ct++ {
-			// Get metric column
-			switch val := (*(rowIn[ct+1].(*interface{}))).(type) {
+			// If this is one of the pre-determined columns, skip it.
+			if ct == timeIndex || ct == metricIndex {
+				continue
+			}
+
+			// Get metric value
+			switch val := (*(rowIn[ct].(*interface{}))).(type) {
 			case float64:
 				valueFloat = val
 			case int64:
@@ -193,10 +214,34 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 			case int:
 				valueFloat = float64(val)
 			default:
-				return fmt.Errorf("second column (metric) must be either a float or integer")
+				return fmt.Errorf("column %d must be either a float or integer", ct+2)
+			}
+			v.logger.Debug("stop 6")
+			// Figure out what the final series name should be.
+			var finalLabel string
+
+			if metricIndex == -1 {
+				finalLabel = columns[ct]
+			} else {
+				if prefixSeriesName {
+					finalLabel = rowIn[metricIndex].(string) + columns[ct]
+				} else {
+					finalLabel = rowIn[metricIndex].(string)
+				}
 			}
 
-			result.Series[ct].Points = appendMetricPoint(result.Series[ct].Points, timestampInt, valueFloat)
+			seriesIndex, contained := seriesIndexMap[finalLabel]
+			if !contained {
+				v.logger.Debug(fmt.Sprintf("adding new series: %v", finalLabel))
+				result.Series = appendNewSeries(result.Series, finalLabel)
+				seriesIndex = len(result.Series) - 1
+				seriesIndexMap[finalLabel] = seriesIndex
+				v.logger.Debug(fmt.Sprintf("new series index: %d", seriesIndex))
+			}
+
+			v.logger.Debug(fmt.Sprintf("adding to series %d: (%d %f)", seriesIndex, timestampInt, valueFloat))
+
+			result.Series[seriesIndex].Points = appendMetricPoint(result.Series[seriesIndex].Points, timestampInt, valueFloat)
 		}
 
 	}

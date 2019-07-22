@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -12,15 +11,6 @@ import (
 )
 
 const macroPattern = `\$(__[_a-zA-Z0-9]+)\(([^\)]*)\)`
-
-func jsonEscape(i string) string {
-	b, err := json.Marshal(i)
-	if err != nil {
-		panic(err)
-	}
-	s := string(b)
-	return s[1 : len(s)-1]
-}
 
 func replaceAllStringSubmatchFunc(re *regexp.Regexp, str string, repl func([]string) string) string {
 	result := ""
@@ -45,7 +35,7 @@ func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) 
 		if len(args) == 0 {
 			return "", fmt.Errorf("missing time column argument for macro %v", name)
 		}
-		return fmt.Sprintf("%s AS Time", args[0]), nil
+		return fmt.Sprintf("%s AS time", args[0]), nil
 	case "__timeFilter":
 		if len(args) == 0 {
 			return "", fmt.Errorf("missing time column argument for macro %v", name)
