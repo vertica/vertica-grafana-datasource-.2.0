@@ -139,17 +139,23 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 
 	columns, _ := rows.Columns()
 
-	if len(columns) < 2 {
+	numSeries := len(columns) - 1
+
+	if numSeries < 1 {
 		return fmt.Errorf("time series queries must return at least two columns (%d returned)", len(columns))
 	}
 
-	result.Series = make([]*datasource.TimeSeries, 1)
-	result.Series[0] = &datasource.TimeSeries{
-		Name:   columns[1],
-		Points: make([]*datasource.Point, 0, initialResultTimeSeriesSize),
+	// Create the output series arrays for every columns.
+	result.Series = make([]*datasource.TimeSeries, numSeries)
+
+	for ct := 0; ct < numSeries; ct++ {
+		result.Series[ct] = &datasource.TimeSeries{
+			Name:   columns[ct+1],
+			Points: make([]*datasource.Point, 0, initialResultTimeSeriesSize),
+		}
 	}
 
-	// Build rows
+	// Build row holder
 	rowIn := make([]interface{}, len(columns))
 	for ct := range rowIn {
 		var ii interface{}
@@ -177,24 +183,25 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 			return fmt.Errorf("timestamp column must be either a timestamp or an integer")
 		}
 
-		// Get metric column
-		switch val := (*(rowIn[1].(*interface{}))).(type) {
-		case float64:
-			valueFloat = val
-		case int64:
-			valueFloat = float64(val)
-		case int:
-			valueFloat = float64(val)
-		default:
-			return fmt.Errorf("second column (metric) must be either a float or integer")
+		for ct := 0; ct < numSeries; ct++ {
+			// Get metric column
+			switch val := (*(rowIn[ct+1].(*interface{}))).(type) {
+			case float64:
+				valueFloat = val
+			case int64:
+				valueFloat = float64(val)
+			case int:
+				valueFloat = float64(val)
+			default:
+				return fmt.Errorf("second column (metric) must be either a float or integer")
+			}
+
+			result.Series[ct].Points = appendMetricPoint(result.Series[ct].Points, timestampInt, valueFloat)
 		}
 
-		result.Series[0].Points = appendMetricPoint(result.Series[0].Points, timestampInt, valueFloat)
 	}
 
-	//result.MetaJson = fmt.Sprintf("{\"rowCount\":%d,\"sql\":\"%s\"}", len(result.Series[0].Points), jsonEscape(rawSQL))
-	result.MetaJson = "{}"
-
+	result.MetaJson = fmt.Sprintf("{\"rowCount\":0,\"sql\":\"%s\"}", jsonEscape(rawSQL))
 	return nil
 }
 
