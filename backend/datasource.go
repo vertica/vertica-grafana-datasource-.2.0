@@ -197,12 +197,12 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 
 		for ct := 0; ct < numColumns; ct++ {
 
-			// If this is one of the pre-determined columns, skip it.
+			// If this is one of the pre-defined columns, skip it.
 			if ct == timeIndex || ct == metricIndex {
 				continue
 			}
 
-			// Get metric value
+			// Get point value
 			switch val := (*(rowIn[ct].(*interface{}))).(type) {
 			case float64:
 				valueFloat = val
@@ -220,10 +220,10 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 			if metricIndex == -1 {
 				finalLabel = columns[ct]
 			} else {
-				finalLabel, ok := (*(rowIn[metricIndex].(*interface{}))).(string)
-				if !ok {
-					return fmt.Errorf("metric column %d (%s) must be of string type", metricIndex+1, columns[metricIndex])
-				}
+				finalLabel = (*(rowIn[metricIndex].(*interface{}))).(string)
+				// if !ok {
+				// 	return fmt.Errorf("metric column %d must be of string type", metricIndex+1)
+				// }
 
 				if prefixSeriesName {
 					finalLabel = finalLabel + columns[ct]
