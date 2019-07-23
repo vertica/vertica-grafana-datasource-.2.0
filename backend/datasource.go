@@ -220,13 +220,10 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 			if metricIndex == -1 {
 				finalLabel = columns[ct]
 			} else {
-				finalLabel = (*(rowIn[metricIndex].(*interface{}))).(string)
-				// switch val := (*(rowIn[metricIndex].(*interface{}))).(type) {
-				// case string:
-				// 	finalLabel = val
-				// default:
-				// 	finalLabel = fmt.Sprintf("unknown type:%v", reflect.TypeOf(val))
-				// }
+				finalLabel, ok := (*(rowIn[metricIndex].(*interface{}))).(string)
+				if !ok {
+					return fmt.Errorf("metric column %d (%s) must be of string type", metricIndex+1, columns[metricIndex])
+				}
 
 				if prefixSeriesName {
 					finalLabel = finalLabel + columns[ct]
@@ -235,7 +232,6 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 
 			seriesIndex, contained := seriesIndexMap[finalLabel]
 			if !contained {
-				//				v.logger.Debug(fmt.Sprintf("adding new series: %v", finalLabel))
 				result.Series = appendNewSeries(result.Series, finalLabel)
 				seriesIndex = len(result.Series) - 1
 				seriesIndexMap[finalLabel] = seriesIndex
