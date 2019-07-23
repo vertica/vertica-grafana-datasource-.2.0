@@ -152,8 +152,6 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 
 func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryResult, rows *sql.Rows, rawSQL string) error {
 
-	v.logger.Debug("stop 1")
-
 	columns, _ := rows.Columns()
 	numColumns := len(columns)
 
@@ -161,13 +159,13 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 	if timeIndex == -1 {
 		return fmt.Errorf("time series must contain a column called 'time' containing the metric's time")
 	}
-	v.logger.Debug("stop 2")
+
 	metricIndex := containsString("metric", columns)
 	prefixSeriesName := metricIndex >= 0 && numColumns > 3
 
 	// Create the output series arrays for every columns.
 	result.Series = make([]*datasource.TimeSeries, 0, initialSeriesCapacity)
-	v.logger.Debug("stop 3")
+
 	// Build row holder
 	rowIn := make([]interface{}, len(columns))
 	for ct := range rowIn {
@@ -177,7 +175,6 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 
 	// Build series map
 	seriesIndexMap := make(map[string]int)
-	v.logger.Debug("stop 4")
 	for rows.Next() {
 
 		// Scan all values into a generic array of interface{}s.
@@ -195,9 +192,9 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 		case int64:
 			timestampInt = val
 		default:
-			return fmt.Errorf("timestamp column must be either a timestamp or an integer")
+			return fmt.Errorf("timestamp (time) column must be either a timestamp or an integer")
 		}
-		v.logger.Debug("stop 5")
+
 		for ct := 0; ct < numColumns; ct++ {
 
 			// If this is one of the pre-determined columns, skip it.
@@ -214,32 +211,35 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 			case int:
 				valueFloat = float64(val)
 			default:
-				return fmt.Errorf("column %d must be either a float or integer", ct+2)
+				return fmt.Errorf("column %d must be either a float or integer", ct+1)
 			}
-			v.logger.Debug("stop 6")
+
 			// Figure out what the final series name should be.
 			var finalLabel string
 
 			if metricIndex == -1 {
 				finalLabel = columns[ct]
 			} else {
+				finalLabel = (*(rowIn[metricIndex].(*interface{}))).(string)
+				// switch val := (*(rowIn[metricIndex].(*interface{}))).(type) {
+				// case string:
+				// 	finalLabel = val
+				// default:
+				// 	finalLabel = fmt.Sprintf("unknown type:%v", reflect.TypeOf(val))
+				// }
+
 				if prefixSeriesName {
-					finalLabel = rowIn[metricIndex].(string) + columns[ct]
-				} else {
-					finalLabel = rowIn[metricIndex].(string)
+					finalLabel = finalLabel + columns[ct]
 				}
 			}
 
 			seriesIndex, contained := seriesIndexMap[finalLabel]
 			if !contained {
-				v.logger.Debug(fmt.Sprintf("adding new series: %v", finalLabel))
+				//				v.logger.Debug(fmt.Sprintf("adding new series: %v", finalLabel))
 				result.Series = appendNewSeries(result.Series, finalLabel)
 				seriesIndex = len(result.Series) - 1
 				seriesIndexMap[finalLabel] = seriesIndex
-				v.logger.Debug(fmt.Sprintf("new series index: %d", seriesIndex))
 			}
-
-			v.logger.Debug(fmt.Sprintf("adding to series %d: (%d %f)", seriesIndex, timestampInt, valueFloat))
 
 			result.Series[seriesIndex].Points = appendMetricPoint(result.Series[seriesIndex].Points, timestampInt, valueFloat)
 		}

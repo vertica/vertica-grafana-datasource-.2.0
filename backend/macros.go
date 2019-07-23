@@ -74,10 +74,6 @@ func sanitizeAndInterpolateMacros(aLogger hclog.Logger, rawSQL string, tsdbReq *
 			return "macro_error()"
 		}
 
-		// if err != nil && macroError == nil {
-		// 	macroError = err
-		// 	return "macro_error()"
-		// }
 		return res
 	})
 
