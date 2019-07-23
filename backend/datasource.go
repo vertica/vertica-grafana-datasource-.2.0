@@ -297,6 +297,7 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 			rows, err := connDB.QueryContext(context.Background(), queryArgs.RawSQL)
 
 			if err != nil {
+				response.Results[ct].MetaJson = fmt.Sprintf("{\"rowCount\":0,\"sql\":\"%s\"}", jsonEscape(queryArgs.RawSQL))
 				response.Results[ct].Error = err.Error()
 				continue
 			}

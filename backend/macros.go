@@ -45,6 +45,28 @@ func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) 
 				time.Unix(0, timeRange.GetFromEpochMs()*1000000).Format(time.RFC3339Nano),
 				time.Unix(0, timeRange.GetToEpochMs()*1000000).Format(time.RFC3339Nano)),
 			nil
+	case "__expandMultiString":
+		if len(args) == 0 {
+			return "", fmt.Errorf("missing string argument for macro: %v", name)
+		}
+
+		var result string
+
+		if len(args) == 1 {
+			return args[0], nil
+		}
+
+		for ct := 0; ct < len(args)-1; ct++ {
+			trimmed := strings.Trim(args[ct], "{}'")
+			if ct > 0 {
+				result += fmt.Sprintf(",'%s'", trimmed)
+			} else {
+				result += fmt.Sprintf("'%s'", trimmed)
+			}
+		}
+
+		return result, nil
+
 	default:
 		return "", fmt.Errorf("Unknown macro %v", name)
 	}
