@@ -216,17 +216,18 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 
 			// Figure out what the final series name should be.
 			var finalLabel string
+			var ok bool
 
 			if metricIndex == -1 {
 				finalLabel = columns[ct]
 			} else {
-				finalLabel = (*(rowIn[metricIndex].(*interface{}))).(string)
-				// if !ok {
-				// 	return fmt.Errorf("metric column %d must be of string type", metricIndex+1)
-				// }
+				finalLabel, ok = (*(rowIn[metricIndex].(*interface{}))).(string)
+				if !ok {
+					return fmt.Errorf("metric column %d must be of string type", metricIndex+1)
+				}
 
 				if prefixSeriesName {
-					finalLabel = finalLabel + columns[ct]
+					finalLabel = finalLabel + " " + columns[ct]
 				}
 			}
 
@@ -248,7 +249,6 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 
 // Query is primary method of handling requests.
 func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
-	v.logger.Debug(fmt.Sprintf("*** QUERY(): %v", tsdbReq))
 
 	var cfg configArgs
 	json.Unmarshal([]byte(tsdbReq.Datasource.JsonData), &cfg)
@@ -307,6 +307,7 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 				v.buildTableQueryResult(response.Results[ct], rows, queryArgs.RawSQL)
 			} else {
 				if err = v.buildTimeSeriesQueryResult(response.Results[ct], rows, queryArgs.RawSQL); err != nil {
+					response.Results[ct].Series = nil
 					response.Results[ct].Error = err.Error()
 				}
 			}
