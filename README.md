@@ -18,6 +18,15 @@ It defines a new datsource that communicates with Vertica using the Vertica gola
 ln -s (this_dir)/dist (grafana_dir)/data/plugins/vertica-datasource 
 ```
 
+## Logging
+
+You can enable backend logging by setting two variables. On your Grafana server node...
+
+export VERTICA_GRAFANA_LOG_FILE=(log file name)
+export VERTICA_GRAFANA_LOG_LEVEL=[ DEBUG|INFO|ERROR|WARN|FATAL ] (default is INFO)
+
+After that, you can simply watch the log file.
+
 ## Using Grafana Docker Image
 
 It is possible to run the [grafana/grafana](https://hub.docker.com/r/grafana/grafana) Docker image instead of a local grafana-server binary.
