@@ -152,6 +152,8 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 
 func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryResult, rows *sql.Rows, rawSQL string) error {
 
+	result.MetaJson = fmt.Sprintf("{\"rowCount\":0,\"sql\":\"%s\"}", jsonEscape(rawSQL))
+
 	columns, _ := rows.Columns()
 	numColumns := len(columns)
 
@@ -240,10 +242,8 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 
 			result.Series[seriesIndex].Points = appendMetricPoint(result.Series[seriesIndex].Points, timestampInt, valueFloat)
 		}
-
 	}
 
-	result.MetaJson = fmt.Sprintf("{\"rowCount\":0,\"sql\":\"%s\"}", jsonEscape(rawSQL))
 	return nil
 }
 
