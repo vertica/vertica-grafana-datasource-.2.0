@@ -52,11 +52,7 @@ func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) 
 
 		var result string
 
-		if len(args) == 1 {
-			return args[0], nil
-		}
-
-		for ct := 0; ct < len(args)-1; ct++ {
+		for ct := 0; ct < len(args); ct++ {
 			trimmed := strings.Trim(args[ct], "{}'")
 			if ct > 0 {
 				result += fmt.Sprintf(",'%s'", trimmed)
