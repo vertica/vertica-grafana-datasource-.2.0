@@ -17,7 +17,7 @@ func main() {
 	var logger = hclog.New(&hclog.LoggerOptions{
 		Name:  "vertica-grafana-plugin",
 		Level: hclog.LevelFromString("DEBUG"),
-		//Output: bufio.NewWriter(f),
+		// Output: bufio.NewWriter(f),
 	})
 
 	logger.Debug("Starting Vertica datasource plugin")

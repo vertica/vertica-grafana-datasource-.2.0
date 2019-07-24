@@ -12,23 +12,6 @@ import (
 
 const macroPattern = `\$(__[_a-zA-Z0-9]+)\(([^\)]*)\)`
 
-func replaceAllStringSubmatchFunc(re *regexp.Regexp, str string, repl func([]string) string) string {
-	result := ""
-	lastIndex := 0
-
-	for _, v := range re.FindAllSubmatchIndex([]byte(str), -1) {
-		groups := []string{}
-		for i := 0; i < len(v); i += 2 {
-			groups = append(groups, str[v[i]:v[i+1]])
-		}
-
-		result += str[lastIndex:v[0]] + repl(groups)
-		lastIndex = v[1]
-	}
-
-	return result + str[lastIndex:]
-}
-
 func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) (string, error) {
 	switch name {
 	case "__time":
@@ -43,6 +26,20 @@ func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) 
 		return fmt.Sprintf("%s BETWEEN '%s' AND '%s'",
 				args[0],
 				time.Unix(0, timeRange.GetFromEpochMs()*1000000).Format(time.RFC3339Nano),
+				time.Unix(0, timeRange.GetToEpochMs()*1000000).Format(time.RFC3339Nano)),
+			nil
+	case "__timeFrom":
+		if len(args) != 0 {
+			return "", fmt.Errorf("macro %v should have no arguments", name)
+		}
+		return fmt.Sprintf("'%s'",
+				time.Unix(0, timeRange.GetFromEpochMs()*1000000).Format(time.RFC3339Nano)),
+			nil
+	case "__timeTo":
+		if len(args) != 0 {
+			return "", fmt.Errorf("macro %v should have no arguments", name)
+		}
+		return fmt.Sprintf("'%s'",
 				time.Unix(0, timeRange.GetToEpochMs()*1000000).Format(time.RFC3339Nano)),
 			nil
 	case "__expandMultiString":
@@ -64,8 +61,32 @@ func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) 
 		return result, nil
 
 	default:
-		return "", fmt.Errorf("Unknown macro %v", name)
+		return "", fmt.Errorf("Undefined macro: $__%v", name)
 	}
+}
+
+func replaceAllStringSubmatchFunc(re *regexp.Regexp, str string, repl func([]string) (string, error)) (string, error) {
+	result := ""
+	lastIndex := 0
+
+	for _, v := range re.FindAllSubmatchIndex([]byte(str), -1) {
+		groups := []string{}
+		for i := 0; i < len(v); i += 2 {
+			groups = append(groups, str[v[i]:v[i+1]])
+		}
+
+		replacement, err := repl(groups)
+
+		if err != nil {
+			return "", err
+		}
+
+		result += str[lastIndex:v[0]] + replacement
+
+		lastIndex = v[1]
+	}
+
+	return result + str[lastIndex:], nil
 }
 
 func sanitizeAndInterpolateMacros(aLogger hclog.Logger, rawSQL string, tsdbReq *datasource.DatasourceRequest) (string, error) {
@@ -77,23 +98,25 @@ func sanitizeAndInterpolateMacros(aLogger hclog.Logger, rawSQL string, tsdbReq *
 		return rawSQL, err
 	}
 
-	// Replace macros
-	// TODO: propagate errors
-	sql := replaceAllStringSubmatchFunc(regex, rawSQL, func(groups []string) string {
+	sql, err := replaceAllStringSubmatchFunc(regex, rawSQL, func(groups []string) (string, error) {
 
-		args := strings.Split(groups[2], ",")
-		for i, arg := range args {
-			args[i] = strings.Trim(arg, " ")
+		var args []string
+
+		if len(groups) > 2 && len(groups[2]) > 0 {
+			args = strings.Split(groups[2], ",")
+			for i, arg := range args {
+				args[i] = strings.Trim(arg, " ")
+			}
 		}
+
 		res, err := evaluateMacro(groups[1], args, tsdbReq.GetTimeRange())
 
 		if err != nil {
-			aLogger.Error(err.Error())
-			return "macro_error()"
+			return "", err
 		}
 
-		return res
+		return res, nil
 	})
 
-	return sql, nil
+	return sql, err
 }
