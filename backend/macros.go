@@ -47,7 +47,7 @@ func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) 
 			nil
 	case "__expandMultiString":
 		if len(args) == 0 {
-			return "", fmt.Errorf("missing string argument for macro: %v", name)
+			return "", fmt.Errorf("missing selector argument for macro: %v", name)
 		}
 
 		var result string
