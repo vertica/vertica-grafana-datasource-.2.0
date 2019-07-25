@@ -15,7 +15,7 @@ It defines a new datsource that communicates with Vertica using the Vertica gola
 6. Create a symbolic link from the Grafana's plugin directory to this project's 'dist' directory thusly:
 
 ```
-ln -s (this_dir)/dist (grafana_dir)/data/plugins/vertica-datasource 
+ln -s (this_dir)/dist (grafana_dir)/data/plugins/vertica-grafana-datasource 
 ```
 
 ## Logging
@@ -40,7 +40,7 @@ It is possible to run the [grafana/grafana](https://hub.docker.com/r/grafana/gra
    * Otherwise
       ```
       cd backend
-      GOOS=linux go build -o ../dist/vertica-plugin_linux_amd64
+      GOOS=linux go build -o ../dist/vertica-grafana-datasource_linux_amd64
       cd ..
       ```
 1. Start the grafana Docker image
@@ -55,5 +55,5 @@ It is possible to run the [grafana/grafana](https://hub.docker.com/r/grafana/gra
 
 1. Make your code changes.
 2. Run './build.sh'
-3. Ctrl-C and re-run <i>vertica-server</i>
+3. Ctrl-C and re-run <i>grafana-server</i>
 4. Repeat until tired.

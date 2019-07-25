@@ -36,7 +36,7 @@ fi
 echo "building all go binaries"
 cd backend
 # GOOS=$GOOS go build -o ../dist/vertica-plugin$POST
-GOOS=darwin go build -o ../dist/vertica-plugin_linux_amd64
-# GOOS=darwin go build -o ../dist/vertica-plugin_darwin_amd64
-# GOOS=windows go build -o ../dist/vertica-plugin_windows_amd64
+GOOS=linux go build -o ../dist/vertica-grafana-datasource_linux_amd64
+# GOOS=darwin go build -o ../dist/vertica-grafana-datasource_darwin_amd64
+# GOOS=windows go build -o ../dist/vertica-grafana-datasource_windows_amd64
 cd ..

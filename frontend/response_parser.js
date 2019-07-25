@@ -107,42 +107,4 @@ export default class ResponseParser {
     return false;
   }
 
-  transformAnnotationResponse(options, data) {
-    const table = data.data.results[options.annotation.name].tables[0];
-
-    let timeColumnIndex = -1;
-    const titleColumnIndex = -1;
-    let textColumnIndex = -1;
-    let tagsColumnIndex = -1;
-
-    for (let i = 0; i < table.columns.length; i++) {
-      if (table.columns[i].text === 'time') {
-        timeColumnIndex = i;
-      } else if (table.columns[i].text === 'text') {
-        textColumnIndex = i;
-      } else if (table.columns[i].text === 'tags') {
-        tagsColumnIndex = i;
-      }
-    }
-
-    if (timeColumnIndex === -1) {
-      return this.$q.reject({
-        message: 'Missing mandatory time column in annotation query.',
-      });
-    }
-
-    const list = [];
-    for (let i = 0; i < table.rows.length; i++) {
-      const row = table.rows[i];
-      list.push({
-        annotation: options.annotation,
-        time: Math.floor(row[timeColumnIndex]),
-        title: row[titleColumnIndex],
-        text: row[textColumnIndex],
-        tags: row[tagsColumnIndex] ? row[tagsColumnIndex].trim().split(/\s*,\s*/) : [],
-      });
-    }
-
-    return list;
-  }
 }

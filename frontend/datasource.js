@@ -16,11 +16,7 @@ export default class VerticaDatasource {
 
   query(options) {
 
-    console.log(options)
-
-    var newTargets = options.targets
-
-    const queries = newTargets.map((target) => {
+    const queries = options.targets.map((target) => {
       return {
         refId: target.refId,
         datasourceId: this.id,
@@ -92,33 +88,6 @@ export default class VerticaDatasource {
       return this.queryModel.quoteLiteral(v);
     });
     return quotedValues.join(',');
-  }
-
-  annotationQuery(options) {
-    if (!options.annotation.rawQuery) {
-      return this.$q.reject({
-        message: 'Query missing in annotation definition',
-      });
-    }
-
-    const query = {
-      refId: options.annotation.name,
-      datasourceId: this.id,
-      rawSql: this.templateSrv.replace(options.annotation.rawQuery, options.scopedVars, this.interpolateVariable),
-      format: 'table',
-    };
-
-    return this.backendSrv
-      .datasourceRequest({
-        url: '/api/tsdb/query',
-        method: 'POST',
-        data: {
-          from: options.range.from.valueOf().toString(),
-          to: options.range.to.valueOf().toString(),
-          queries: [query],
-        },
-      })
-      .then(data => this.responseParser.transformAnnotationResponse(options, data));
   }
 
   testDatasource() {
