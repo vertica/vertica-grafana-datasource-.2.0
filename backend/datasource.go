@@ -213,7 +213,7 @@ func (v *VerticaDatasource) buildTimeSeriesQueryResult(result *datasource.QueryR
 			case int:
 				valueFloat = float64(val)
 			default:
-				return fmt.Errorf("column %d must be either a float or integer", ct+1)
+				return fmt.Errorf("column %d must be either a float or integer: got type: %v, value: %v", ct+1, reflect.TypeOf(val), val)
 			}
 
 			// Figure out what the final series name should be.
