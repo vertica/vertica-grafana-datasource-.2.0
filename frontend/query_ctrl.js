@@ -16,7 +16,6 @@ FROM \n\
 v_monitor.cpu_usage \n\
 WHERE \n\
 $__timeFilter(end_time)';
-      this.target.refresh()
     }
 
 }
