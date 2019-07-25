@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b852d2b62be24e445fcdbad9ce3015b44c207815d631230dfce3f14e7803f5bf"
+  digest = "1:f5ce1529abc1204444ec73779f44f94e2fa8fcdb7aca3c355b0c95947e4005c6"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -12,58 +12,58 @@
     "ptypes/duration",
     "ptypes/timestamp",
   ]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7"
 
 [[projects]]
-  branch = "renderer"
-  digest = "1:73460e6eaa31824af444a895e5858175883c73b88acc8df767a115b78b578ddb"
+  branch = "master"
+  digest = "1:a21eb24449bd5250ba435ac4c857f654aa162b3e03f4da511a7363d521a5ed19"
   name = "github.com/grafana/grafana_plugin_model"
   packages = ["go/datasource"]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "84176c64269d8060f99e750ee8aba6f062753336"
 
 [[projects]]
-  digest = "1:2f7a9df14614ced87f61688d9c08080e89d4a931232bf92a169e1b46b38566fe"
+  digest = "1:cf6b61e1b4c26b0c7526cee4a0cee6d8302b17798af4b2a56a90eedac0aef11a"
   name = "github.com/hashicorp/go-hclog"
   packages = ["."]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "5ccdce08c75b6c7b37af61159f13f6a4f5e2e928"
   version = "v0.9.2"
 
 [[projects]]
-  digest = "1:de20979176f5f326a028fd0d3698f4ec18f6921b46c9d68a35200355c6e8e6b9"
+  digest = "1:82320f8469d1524df337bc315a38c87644765cd89ec4cf3cbda249a3acdde671"
   name = "github.com/hashicorp/go-plugin"
   packages = ["."]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "e8d22c780116115ae5624720c9af0c97afe4f551"
 
 [[projects]]
   branch = "master"
-  digest = "1:f9a62feb8295380942889460d0008f9fc34c4ad288821efb2ec15168a91b3404"
+  digest = "1:a4826c308e84f5f161b90b54a814f0be7d112b80164b9b884698a6903ea47ab3"
   name = "github.com/hashicorp/yamux"
   packages = ["."]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "2f1d1f20f75d5404f53b9edf6b53ed5505508675"
 
 [[projects]]
-  digest = "1:9adf43f9a17af07a6d587e3b493e2111ad8e07283d5cd58e44e70d23bf6dc644"
+  digest = "1:42eb1f52b84a06820cedc9baec2e710bfbda3ee6dac6cdb97f8b9a5066134ec6"
   name = "github.com/mitchellh/go-testing-interface"
   packages = ["."]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "6d0b8010fcc857872e42fc6c931227569016843c"
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:94e9081cc450d2cdf4e6886fc2c06c07272f86477df2d74ee5931951fa3d2577"
+  digest = "1:9ec6cf1df5ad1d55cf41a43b6b1e7e118a91bade4f68ff4303379343e40c0e25"
   name = "github.com/oklog/run"
   packages = ["."]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "4dadeb3030eda0273a12382bb2348ffc7c9d1a39"
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:5911bdb54c132ed2f9cb65c7d86842f9a837cbb29bd98ece7d10144ee32c0432"
+  digest = "1:f79a2e3c025e6d6e4d9e7a0688dd3453302c630430c7f09a7e26864f8d1e408d"
   name = "github.com/vertica/vertica-sql-go"
   packages = [
     ".",
@@ -71,13 +71,13 @@
     "logger",
     "msgs",
   ]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "9e194a19d20049593248e31e22cc24e71d2e4b2f"
   version = "0.1.1"
 
 [[projects]]
   branch = "master"
-  digest = "1:955694a7c42527d7fb188505a22f10b3e158c6c2cf31fe64b1e62c9ab7b18401"
+  digest = "1:d2aa096fe6b539afe74dd6ab8e9a160304707f1477b01c637b4bbe20d262a25c"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -88,19 +88,19 @@
     "internal/timeseries",
     "trace",
   ]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "ca1201d0de80cfde86cb01aea620983605dfe99b"
 
 [[projects]]
   branch = "master"
-  digest = "1:8d8dab33e614e3839a47bbb340189458c28c58e60655023d20eeb92b7300768a"
+  digest = "1:5632b0c4d972da51b5914f09fc5c1a8535e9d8d5d937e95ef83c423a0dd67f13"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "fae7ac547cb717d141c433a2a173315e216b64c4"
 
 [[projects]]
-  digest = "1:740b51a55815493a8d0f2b1e0d0ae48fe48953bf7eaf3fcc4198823bf67768c0"
+  digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
   name = "golang.org/x/text"
   packages = [
     "collate",
@@ -120,20 +120,20 @@
     "unicode/norm",
     "unicode/rangetable",
   ]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
   version = "v0.3.2"
 
 [[projects]]
   branch = "master"
-  digest = "1:53a69ca05e2f34d0d6e5cc02d2d3b0c0f815628965757fb5aaf04aa83ca5cc07"
+  digest = "1:583a0c80f5e3a9343d33aea4aead1e1afcc0043db66fdf961ddd1fe8cd3a4faf"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "c506a9f9061087022822e8da603a52fc387115a8"
 
 [[projects]]
-  digest = "1:425ee670b3e8b6562e31754021a82d78aa46b9281247827376616c8aa78f4687"
+  digest = "1:630e92180cd33deada273ff1fe293c9451884eb3c25b73f835c28f5f3444a76c"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -172,7 +172,7 @@
     "status",
     "tap",
   ]
-  pruneopts = ""
+  pruneopts = "UT"
   revision = "045159ad57f3781d409358e3ade910a018c16b30"
   version = "v1.22.1"
 
