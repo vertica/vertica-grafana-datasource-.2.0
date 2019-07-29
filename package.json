@@ -1,5 +1,5 @@
 {
-  "name": "vertica-grafana-plugin",
+  "name": "vertica-grafana-datasource",
   "private": true,
   "version": "0.0.1",
   "description": "Vertica Data Source Plugin for Grafana",
