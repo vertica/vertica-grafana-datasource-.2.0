@@ -1,4 +1,4 @@
-# vertica-grafana-plugin
+# vertica-grafana-datasource
 
 ## Overview
 This is a work-in-progress Grafana plugin to support the Vertica database.
