@@ -14,17 +14,17 @@ It defines a new datsource that communicates with Vertica using the Vertica gola
 5. Start Grafana once by running the grafana-server binary you built in step 2.
 6. Create a symbolic link from the Grafana's plugin directory to this project's 'dist' directory thusly:
 
-```
+```bash
 ln -s (this_dir)/dist (grafana_dir)/data/plugins/vertica-grafana-datasource 
 ```
 
 ## Logging
 
 You can enable backend logging by setting two variables. On your Grafana server node...
-
+```bash
 export VERTICA_GRAFANA_LOG_FILE=(log file name)
 export VERTICA_GRAFANA_LOG_LEVEL=[ DEBUG|INFO|ERROR|WARN|FATAL ] (default is INFO)
-
+```
 After that, you can simply watch the log file.
 
 ## Using Grafana Docker Image
