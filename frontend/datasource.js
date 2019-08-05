@@ -55,7 +55,7 @@ export default class VerticaDatasource {
         rawSql: this.templateSrv.replace(target.rawSql),
         format: target.format,
       };
-    })
+    });
 
     if (queries.length === 0) {
       return this.$q.when({ data: [] });
