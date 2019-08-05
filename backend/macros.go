@@ -93,7 +93,7 @@ func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) 
 		return result, nil
 
 	default:
-		return "", fmt.Errorf("Undefined macro: $__%v", name)
+		return "", fmt.Errorf("undefined macro: $__%v", name)
 	}
 }
 
