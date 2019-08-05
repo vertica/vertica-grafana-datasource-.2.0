@@ -344,8 +344,6 @@ func (v *VerticaDatasource) Query(ctx context.Context, tsdbReq *datasource.Datas
 					response.Results[ct].Error = err.Error()
 				}
 			}
-		} else {
-			response.Results[ct].Error = "empty query string"
 		}
 	}
 
