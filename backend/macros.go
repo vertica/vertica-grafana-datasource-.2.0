@@ -40,6 +40,7 @@ import (
 
 	"github.com/grafana/grafana_plugin_model/go/datasource"
 	hclog "github.com/hashicorp/go-hclog"
+
 )
 
 const macroPattern = `\$(__[_a-zA-Z0-9]+)\(([^\)]*)\)`
@@ -91,7 +92,11 @@ func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) 
 		}
 
 		return result, nil
-
+	case "__unixEpochFilter":
+		if len(args) == 0 {
+			return "", fmt.Errorf("missing time column argument for macro %v", name)
+		}
+		return fmt.Sprintf("%s >= %d AND %s <= %d", args[0], timeRange.GetFromEpochMs(), args[0], timeRange.GetToEpochMs()), nil
 	default:
 		return "", fmt.Errorf("undefined macro: $__%v", name)
 	}
