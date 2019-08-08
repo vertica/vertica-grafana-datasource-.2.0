@@ -23,15 +23,12 @@ _testmain.go
 *.test
 *.prof
 
-
-
 /vendor/**
 !/vendor/vendor.json
 .DS_Store
 *.swp
 
 node_modules
-dist/oci-plugin_*
 coverage/
-dist/
+dist/test
 .env

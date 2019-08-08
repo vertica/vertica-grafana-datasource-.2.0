@@ -36,7 +36,6 @@ import ResponseParser from './response_parser';
 export default class VerticaDatasource {
 
   constructor(instanceSettings, backendSrv, $q, templateSrv, timeSrv) {
-    this.instanceSettings = instanceSettings;
     this.backendSrv = backendSrv;
     this.q = $q;
     this.name = instanceSettings.name;

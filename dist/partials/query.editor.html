@@ -1,0 +1,68 @@
+<query-editor-row query-ctrl="ctrl" has-text-edit-mode="true">
+
+  <div class="gf-form-inline">
+    <div class="gf-form gf-form--grow">
+      <code-editor content="ctrl.target.rawSql" datasource="ctrl.datasource" on-change="ctrl.panelCtrl.refresh()" data-mode="sql">
+      </code-editor>
+    </div>
+  </div>
+
+  <div class="gf-form">
+    <label class="gf-form-label query-keyword">Format as</label>
+    <div class="gf-form-select-wrapper">
+      <select class="gf-form-input gf-size-auto" ng-model="ctrl.target.format" ng-options="f.value as f.text for f in ctrl.formats" ng-change="ctrl.refresh()"></select>
+    </div>
+  </div>
+
+  <div class="gf-form"  ng-show="ctrl.showHelp">
+    <pre class="gf-form-pre alert alert-info">Time series:
+- return column named <i>time</i> (UTC in seconds or timestamp)
+- return column(s) with numeric datatype as values
+Optional: 
+  - return column named <i>metric</i> to represent the series name. 
+  - If multiple value columns are returned the metric column is used as prefix. 
+  - If no column named metric is found the column name of the value column is used as series name
+
+Resultsets of time series queries need to be sorted by time.
+
+Table:
+- return any set of columns
+
+Macros:
+- $__time(column) -&gt; column as "time"
+- $__timeFilter(column) -&gt; column BETWEEN '2017-04-21T05:01:17Z' AND '2017-04-21T05:01:17Z'
+- $__expandMultiString(variable) -&gt; expand single/multi-select variable so it can be used inside of 'IN' predicate
+- $__timeFrom() -&gt;  '2017-04-21T05:01:17Z'
+- $__timeTo() -&gt;  '2017-04-21T05:01:17Z'
+
+NOT IMPLEMENTED:
+- $__timeEpoch -&gt; extract(epoch from column) as "time" (NOT YET IMPLEMENTED)
+- $__unixEpochFilter(column) -&gt;  column &gt;= 1492750877 AND column &lt;= 1492750877 (NOT YET IMPLEMENTED)
+- $__timeGroup(column,'5m'[, fillvalue]) -&gt; (extract(epoch from column)/300)::bigint*300 (NOT YET IMPLEMENTED)
+      by setting fillvalue grafana will fill in missing values according to the interval
+      fillvalue can be either a literal value, NULL or previous; previous will fill in the previous seen value or NULL if none has been seen yet
+
+Example of group by and order by with $__timeGroup:
+SELECT
+  $__timeGroup(date_time_col, '1h'),
+  sum(value) as value
+FROM yourtable
+GROUP BY time
+ORDER BY time      
+
+- $__timeGroupAlias(column,'5m') -&gt; (extract(epoch from column)/300)::bigint*300 AS "time" (NOT YET IMPLEMENTED)
+- $__unixEpochGroup(column,'5m') -&gt; floor(column/300)*300 (NOT YET IMPLEMENTED)
+- $__unixEpochGroupAlias(column,'5m') -&gt; floor(column/300)*300 AS "time" (NOT YET IMPLEMENTED)
+- $__unixEpochFrom() -&gt;  1492750877
+- $__unixEpochTo() -&gt;  1492750877
+
+    </pre>
+  </div>
+
+  </div>
+
+  <div class="gf-form" ng-show="ctrl.lastQueryError">
+    <pre class="gf-form-pre alert alert-error">{{ctrl.lastQueryError}}</pre>
+  </div>
+
+</query-editor-row>
