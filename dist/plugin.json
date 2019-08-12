@@ -26,8 +26,8 @@
         {"name": "GitHub", "url": "https://github.com/vertica/vertica-grafana-datasource"},
         {"name": "Apache License", "url": "https://github.com/vertica/vertica-grafana-datasource"}
       ],
-      "version": "0.0.3",
-      "updated": "2019-08-03"
+      "version": "0.1.0",
+      "updated": "2019-08-07"
     },
   
     "dependencies": {
