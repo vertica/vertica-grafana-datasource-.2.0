@@ -63,17 +63,19 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:fe251a82c89d5f47ad7534caff041f38e36f73501c956e3218e11303860d199e"
+  digest = "1:f134d72c192fdd4bd88fbf66d0dbbb4ca6391bb586f0d8467d4d8921a79d480a"
   name = "github.com/vertica/vertica-sql-go"
   packages = [
     ".",
     "common",
     "logger",
     "msgs",
+    "parse",
+    "rowcache",
   ]
   pruneopts = "UT"
-  revision = "4617d6abf8c13acf2098f0802b28ae1acffecbb8"
-  version = "v0.1.4"
+  revision = "90d87bb7d05a21a5b32367524c5963f6ebbf2809"
+  version = "v0.2.1"
 
 [[projects]]
   branch = "master"
