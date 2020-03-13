@@ -28,9 +28,8 @@ case $OS in
   *) ;;
 esac
 
-if [[ ! -d ./vendor ]]; then
-  echo "dependencies not installed try running: dep ensure"
-  exit 1
+if [[ ! -f ./go.mod ]]; then
+  go mod init github.com/vertica/vertica-grafana-datasource
 fi
 
 echo "building all go binaries"
@@ -39,3 +38,5 @@ GOOS=linux go build -o ../dist/vertica-grafana-datasource_linux_amd64
 GOOS=darwin go build -o ../dist/vertica-grafana-datasource_darwin_amd64
 GOOS=windows go build -o ../dist/vertica-grafana-datasource_windows_amd64.exe
 cd ..
+
+go mod tidy

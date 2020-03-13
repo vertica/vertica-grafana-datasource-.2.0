@@ -156,6 +156,11 @@ func (v *VerticaDatasource) buildTableQueryResult(result *datasource.QueryResult
 		for ct := range columns {
 			var rawValue = *(rowIn[ct].(*interface{}))
 
+			if rawValue == nil {
+				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_NULL}
+				continue
+			}
+
 			switch val := rawValue.(type) {
 			case sql.NullString, sql.NullBool, sql.NullFloat64, sql.NullInt64:
 				rowOut[ct] = &datasource.RowValue{Kind: datasource.RowValue_TYPE_NULL}
