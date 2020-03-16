@@ -58,7 +58,7 @@ System.register(['lodash', './response_parser'], function (_export, _context) {
               return {
                 refId: target.refId,
                 datasourceId: _this.id,
-                rawSql: _this.templateSrv.replace(target.rawSql),
+                rawSql: _this.templateSrv.replace(target.rawSql, options.scopedVars),
                 format: target.format
               };
             });

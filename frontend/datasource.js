@@ -51,7 +51,7 @@ export default class VerticaDatasource {
       return {
         refId: target.refId,
         datasourceId: this.id,
-        rawSql: this.templateSrv.replace(target.rawSql),
+        rawSql: this.templateSrv.replace(target.rawSql,options.scopedVars),
         format: target.format,
       };
     });
