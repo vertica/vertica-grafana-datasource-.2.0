@@ -51,7 +51,7 @@ export default class VerticaDatasource {
       return {
         refId: target.refId,
         datasourceId: this.id,
-        rawSql: this.templateSrv.replace(target.rawSql,options.scopedVars),
+        rawSql: this.templateSrv.replace(target.rawSql, options.scopedVars, this.interpolateVariable),
         format: target.format,
       };
     });
@@ -105,7 +105,7 @@ export default class VerticaDatasource {
   interpolateVariable(value, variable) {
     if (typeof value === 'string') {
       if (variable.multi || variable.includeAll) {
-        return this.queryModel.quoteLiteral(value);
+        return "'" + value.replace(/'/g, `''`) + "'";
       } else {
         return value;
       }
@@ -116,7 +116,7 @@ export default class VerticaDatasource {
     }
 
     const quotedValues = _.map(value, v => {
-      return this.queryModel.quoteLiteral(v);
+      return "'" + v.replace(/'/g, `''`) + "'";
     });
     return quotedValues.join(',');
   }

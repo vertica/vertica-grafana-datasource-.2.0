@@ -75,23 +75,6 @@ func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) 
 		return fmt.Sprintf("'%s'",
 				time.Unix(0, timeRange.GetToEpochMs()*1000000).Format(time.RFC3339Nano)),
 			nil
-	case "__expandMultiString":
-		if len(args) == 0 {
-			return "", fmt.Errorf("missing selector argument for macro: %v", name)
-		}
-
-		var result string
-
-		for ct := 0; ct < len(args); ct++ {
-			trimmed := strings.Trim(args[ct], "{}'")
-			if ct > 0 {
-				result += fmt.Sprintf(",'%s'", trimmed)
-			} else {
-				result += fmt.Sprintf("'%s'", trimmed)
-			}
-		}
-
-		return result, nil
 	case "__unixEpochFilter":
 		if len(args) == 0 {
 			return "", fmt.Errorf("missing time column argument for macro %v", name)
