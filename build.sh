@@ -7,7 +7,7 @@ if [[ ! -d ./node_modules ]]; then
   exit 1
 fi
 
-yarn dev # TODO build
+yarn build
 
 # build go
 

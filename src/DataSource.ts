@@ -1,23 +1,20 @@
 import { DataSourceInstanceSettings, ScopedVars } from '@grafana/data';
-import { DataSourceWithBackend, getBackendSrv, TemplateSrv, toDataQueryResponse } from '@grafana/runtime';
+import { DataSourceWithBackend, getBackendSrv, getTemplateSrv, toDataQueryResponse } from '@grafana/runtime';
 import { VerticaDataSourceOptions, VerticaQuery } from './types';
 import { MetricFindValue } from '@grafana/data/types/datasource';
 import { Table } from 'apache-arrow';
 import _ from 'lodash';
 
 export class DataSource extends DataSourceWithBackend<VerticaQuery, VerticaDataSourceOptions> {
-  private templateSrv: TemplateSrv;
-
-  constructor(instanceSettings: DataSourceInstanceSettings<VerticaDataSourceOptions>, templateSrv: TemplateSrv) {
+  constructor(instanceSettings: DataSourceInstanceSettings<VerticaDataSourceOptions>) {
     super(instanceSettings);
-    this.templateSrv = templateSrv;
   }
 
   // @ts-ignore
   applyTemplateVariables(query: VerticaQuery, scopedVars: ScopedVars): VerticaQuery {
     return {
       ...query,
-      rawSql: this.templateSrv.replace(query.rawSql, scopedVars, this.interpolateVariable),
+      rawSql: getTemplateSrv().replace(query.rawSql, scopedVars, this.interpolateVariable),
     };
   }
 
@@ -46,7 +43,7 @@ export class DataSource extends DataSourceWithBackend<VerticaQuery, VerticaDataS
     const interpolatedQuery = {
       refId: refId,
       datasourceId: this.id,
-      rawSql: this.templateSrv.replace(query, {}, this.interpolateVariable),
+      rawSql: getTemplateSrv().replace(query, {}, this.interpolateVariable),
       format: 'table',
     };
 
