@@ -34,18 +34,16 @@ package main
 
 import (
 	"fmt"
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/grafana/grafana_plugin_model/go/datasource"
-	hclog "github.com/hashicorp/go-hclog"
-
 )
 
 const macroPattern = `\$(__[_a-zA-Z0-9]+)\(([^\)]*)\)`
 
-func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) (string, error) {
+func evaluateMacro(name string, args []string, timeRange backend.TimeRange) (string, error) {
 	switch name {
 	case "__time":
 		if len(args) == 0 {
@@ -57,29 +55,25 @@ func evaluateMacro(name string, args []string, timeRange *datasource.TimeRange) 
 			return "", fmt.Errorf("missing time column argument for macro %v", name)
 		}
 		return fmt.Sprintf("%s BETWEEN '%s' AND '%s'",
-				args[0],
-				time.Unix(0, timeRange.GetFromEpochMs()*1000000).Format(time.RFC3339Nano),
-				time.Unix(0, timeRange.GetToEpochMs()*1000000).Format(time.RFC3339Nano)),
-			nil
+			args[0],
+			timeRange.From.Format(time.RFC3339Nano),
+			timeRange.To.Format(time.RFC3339Nano),
+		), nil
 	case "__timeFrom":
 		if len(args) != 0 {
 			return "", fmt.Errorf("macro %v should have no arguments", name)
 		}
-		return fmt.Sprintf("'%s'",
-				time.Unix(0, timeRange.GetFromEpochMs()*1000000).Format(time.RFC3339Nano)),
-			nil
+		return fmt.Sprintf("'%s'", timeRange.From.Format(time.RFC3339Nano)), nil
 	case "__timeTo":
 		if len(args) != 0 {
 			return "", fmt.Errorf("macro %v should have no arguments", name)
 		}
-		return fmt.Sprintf("'%s'",
-				time.Unix(0, timeRange.GetToEpochMs()*1000000).Format(time.RFC3339Nano)),
-			nil
+		return fmt.Sprintf("'%s'", timeRange.To.Format(time.RFC3339Nano)), nil
 	case "__unixEpochFilter":
 		if len(args) == 0 {
 			return "", fmt.Errorf("missing time column argument for macro %v", name)
 		}
-		return fmt.Sprintf("%s >= %d AND %s <= %d", args[0], timeRange.GetFromEpochMs(), args[0], timeRange.GetToEpochMs()), nil
+		return fmt.Sprintf("%s >= %d AND %s <= %d", args[0], timeRange.From.Unix(), args[0], timeRange.To.Unix()), nil
 	default:
 		return "", fmt.Errorf("undefined macro: $__%v", name)
 	}
@@ -90,7 +84,7 @@ func replaceAllStringSubmatchFunc(re *regexp.Regexp, str string, repl func([]str
 	lastIndex := 0
 
 	for _, v := range re.FindAllSubmatchIndex([]byte(str), -1) {
-		groups := []string{}
+		var groups []string
 		for i := 0; i < len(v); i += 2 {
 			groups = append(groups, str[v[i]:v[i+1]])
 		}
@@ -109,16 +103,16 @@ func replaceAllStringSubmatchFunc(re *regexp.Regexp, str string, repl func([]str
 	return result + str[lastIndex:], nil
 }
 
-func sanitizeAndInterpolateMacros(aLogger hclog.Logger, rawSQL string, tsdbReq *datasource.DatasourceRequest) (string, error) {
+func sanitizeAndInterpolateMacros(rawSql string, tsdbReq backend.DataQuery) (string, error) {
 
 	regex, err := regexp.Compile(macroPattern)
 
 	if err != nil {
-		aLogger.Error(err.Error())
-		return rawSQL, err
+		log.DefaultLogger.Error(err.Error())
+		return rawSql, err
 	}
 
-	sql, err := replaceAllStringSubmatchFunc(regex, rawSQL, func(groups []string) (string, error) {
+	sql, err := replaceAllStringSubmatchFunc(regex, rawSql, func(groups []string) (string, error) {
 
 		var args []string
 
@@ -129,7 +123,7 @@ func sanitizeAndInterpolateMacros(aLogger hclog.Logger, rawSQL string, tsdbReq *
 			}
 		}
 
-		res, err := evaluateMacro(groups[1], args, tsdbReq.GetTimeRange())
+		res, err := evaluateMacro(groups[1], args, tsdbReq.TimeRange)
 
 		if err != nil {
 			return "", err

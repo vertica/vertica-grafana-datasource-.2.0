@@ -28,10 +28,6 @@ case $OS in
   *) ;;
 esac
 
-if [[ ! -f ./go.mod ]]; then
-  go mod init github.com/vertica/vertica-grafana-datasource
-fi
-
 echo "building all go binaries"
 cd backend
 GOOS=linux go build -o ../dist/vertica-grafana-datasource_linux_amd64
