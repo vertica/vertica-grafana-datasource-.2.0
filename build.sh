@@ -7,7 +7,7 @@ if [[ ! -d ./node_modules ]]; then
   exit 1
 fi
 
-./node_modules/.bin/grunt
+yarn dev # TODO build
 
 # build go
 
@@ -29,7 +29,7 @@ case $OS in
 esac
 
 echo "building all go binaries"
-cd backend
+cd pkg
 GOOS=linux go build -o ../dist/vertica-grafana-datasource_linux_amd64
 GOOS=darwin go build -o ../dist/vertica-grafana-datasource_darwin_amd64
 GOOS=windows go build -o ../dist/vertica-grafana-datasource_windows_amd64.exe
