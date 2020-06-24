@@ -35,6 +35,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
@@ -91,9 +92,9 @@ func buildField(colType *sql.ColumnType) (*data.Field, func(interface{}) interfa
 				return &t
 			}, nil
 		}
-		return data.NewField(colName, nil, make([]*int32, 0)), func(raw interface{}) interface{} {
-			//TODO Grafana does not support BigInt, truncate it int 32 for now
-			t := int32(raw.(int))
+		return data.NewField(colName, nil, make([]*float64, 0)), func(raw interface{}) interface{} {
+			//TODO Grafana does not support BigInt, float64 it for now
+			t := float64(raw.(int))
 			return &t
 		}, nil
 	case "float", "numeric":
@@ -185,11 +186,8 @@ func (v *VerticaDatasource) query(ctx context.Context, req *backend.QueryDataReq
 		return
 	}
 
-	log.DefaultLogger.Info(qm.RawSQL)
-
-	db := settings.db
-
-	response.Error = settings.db.PingContext(ctx)
+	var db *sql.DB
+	db, response.Error = settings.getDB(ctx)
 	if response.Error != nil {
 		return
 	}
@@ -250,7 +248,7 @@ func (v *VerticaDatasource) CheckHealth(ctx context.Context, req *backend.CheckH
 		}, nil
 	}
 
-	err = settings.db.PingContext(ctx)
+	_, err = settings.getDB(ctx)
 	if err != nil {
 		return  &backend.CheckHealthResult{
 			Status: backend.HealthStatusError,
@@ -290,4 +288,17 @@ func (s *instanceSettings) Dispose() {
 	if err := s.db.Close(); err != nil {
 		log.DefaultLogger.Error("Error during closing: ", err.Error())
 	}
+}
+
+func (s *instanceSettings) getDB(ctx context.Context) (*sql.DB, error) {
+	if err := s.db.PingContext(ctx); err != nil {
+		// First ping can fail due to timeout and return ErrBadConn
+		if err == driver.ErrBadConn {
+			err = s.db.PingContext(ctx)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	return s.db, nil
 }
