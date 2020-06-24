@@ -22,7 +22,7 @@
     "@grafana/ui": "7.0.1"
   },
   "dependencies": {
-    "react-ace": "^9.0.0",
+    "react-ace": "7.0.5",
     "yarn": "^1.22.4",
     "@types/lodash": "latest"
   }
