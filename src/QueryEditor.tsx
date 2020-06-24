@@ -7,6 +7,7 @@ import { defaultQuery, VerticaDataSourceOptions, VerticaQuery } from './types';
 import AceEditor from 'react-ace';
 
 import 'brace/mode/sql';
+import 'brace/ext/language_tools';
 
 type Props = QueryEditorProps<DataSource, VerticaQuery, VerticaDataSourceOptions>;
 
@@ -20,7 +21,8 @@ export class QueryEditor extends PureComponent<Props> {
     const query = defaults(this.props.query, defaultQuery);
     const { rawSql } = query;
     // @ts-ignore
-    //ace.config.set('basePath', 'public/app/core/components/code_editor/');
+    ace.config.set('basePath', 'public/app/core/components/code_editor/');
+
     return (
       <div className="gf-form">
         <AceEditor
