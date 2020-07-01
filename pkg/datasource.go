@@ -35,12 +35,10 @@ package main
 import (
 	"context"
 	"database/sql"
-	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 	"time"
@@ -49,10 +47,7 @@ import (
 )
 
 func newDatasource() datasource.ServeOpts {
-	im := datasource.NewInstanceManager(newDataSourceInstance)
-	ds := &VerticaDatasource{
-		im: im,
-	}
+	ds := &VerticaDatasource{}
 
 	return datasource.ServeOpts{
 		QueryDataHandler:   ds,
@@ -61,11 +56,6 @@ func newDatasource() datasource.ServeOpts {
 }
 
 type VerticaDatasource struct {
-	im instancemgmt.InstanceManager
-}
-
-type instanceSettings struct {
-	db *sql.DB
 }
 
 type queryModel struct {
@@ -175,22 +165,17 @@ func (v *VerticaDatasource) query(ctx context.Context, req *backend.QueryDataReq
 		return
 	}
 
-	var settings *instanceSettings
-	settings, response.Error = v.getSettings(req.PluginContext)
-	if response.Error != nil {
-		return
-	}
-
 	qm.RawSQL, response.Error = sanitizeAndInterpolateMacros(qm.RawSQL, query)
 	if response.Error != nil {
 		return
 	}
 
 	var db *sql.DB
-	db, response.Error = settings.getDB(ctx)
+	db, response.Error = v.getDB(ctx, req.PluginContext)
 	if response.Error != nil {
 		return
 	}
+	defer db.Close()
 
 	var rows *sql.Rows
 	rows, response.Error = db.QueryContext(ctx, qm.RawSQL)
@@ -240,35 +225,19 @@ func (v *VerticaDatasource) QueryData(ctx context.Context, req *backend.QueryDat
 }
 
 func (v *VerticaDatasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
-	settings, err := v.getSettings(req.PluginContext)
+	db, err := v.getDB(ctx, req.PluginContext)
 	if err != nil {
 		return  &backend.CheckHealthResult{
 			Status: backend.HealthStatusError,
 			Message: err.Error(),
 		}, nil
 	}
-
-	_, err = settings.getDB(ctx)
-	if err != nil {
-		return  &backend.CheckHealthResult{
-			Status: backend.HealthStatusError,
-			Message: err.Error(),
-		}, nil
-	}
+	defer db.Close()
 
 	return &backend.CheckHealthResult{
 		Status:  backend.HealthStatusOk,
 		Message: "Data source is working",
 	}, nil
-}
-
-func (v *VerticaDatasource) getSettings(pluginContext backend.PluginContext) (*instanceSettings, error) {
-	iface, err := v.im.Get(pluginContext)
-	if err != nil {
-		return nil, err
-	}
-
-	return iface.(*instanceSettings), nil
 }
 
 func openConnection(settings *backend.DataSourceInstanceSettings) (*sql.DB, error) {
@@ -277,28 +246,13 @@ func openConnection(settings *backend.DataSourceInstanceSettings) (*sql.DB, erro
 	return sql.Open("vertica", connStr)
 }
 
-func newDataSourceInstance(setting backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
-	db, err := openConnection(&setting)
-	return &instanceSettings{
-		db: db,
-	}, err
-}
-
-func (s *instanceSettings) Dispose() {
-	if err := s.db.Close(); err != nil {
-		log.DefaultLogger.Error("Error during closing: ", err.Error())
+func (s *VerticaDatasource) getDB(ctx context.Context, pluginContext backend.PluginContext) (*sql.DB, error) {
+	db, err := openConnection(pluginContext.DataSourceInstanceSettings)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func (s *instanceSettings) getDB(ctx context.Context) (*sql.DB, error) {
-	if err := s.db.PingContext(ctx); err != nil {
-		// First ping can fail due to timeout and return ErrBadConn
-		if err == driver.ErrBadConn {
-			err = s.db.PingContext(ctx)
-		}
-		if err != nil {
-			return nil, err
-		}
+	if err := db.PingContext(ctx); err != nil {
+		return nil, err
 	}
-	return s.db, nil
+	return db, nil
 }

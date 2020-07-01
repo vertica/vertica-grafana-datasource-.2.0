@@ -22,7 +22,7 @@
         {"name": "Apache License", "url": "https://github.com/vertica/vertica-grafana-datasource"}
       ],
       "version": "0.2.0",
-      "updated": "2020-06-24"
+      "updated": "2020-07-01"
     },
 
     "dependencies": {
