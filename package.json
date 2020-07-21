@@ -17,13 +17,13 @@
   "engineStrict": true,
   "devDependencies": {
     "@grafana/data": "7.0.1",
-    "@grafana/runtime": "7.0.1",
+    "@grafana/runtime": "^7.1.0",
     "@grafana/toolkit": "7.0.1",
-    "@grafana/ui": "7.0.1"
+    "@grafana/ui": "^7.1.0"
   },
   "dependencies": {
+    "@types/lodash": "latest",
     "react-ace": "7.0.5",
-    "yarn": "^1.22.4",
-    "@types/lodash": "latest"
+    "yarn": "^1.22.4"
   }
 }

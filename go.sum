@@ -121,8 +121,8 @@ github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UV
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H4=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
-github.com/vertica/vertica-sql-go v0.2.2-0.20200316194318-4cfbe4f9fff0 h1:Ptnf0SpDxvmFFybgFpOUGuro9tSKSqiHpv9IKrF5y+w=
-github.com/vertica/vertica-sql-go v0.2.2-0.20200316194318-4cfbe4f9fff0/go.mod h1:ftQwsaaf4w2JDDFMikdKqmwxoByn8ll2UwTXf/1XVqk=
+github.com/vertica/vertica-sql-go v1.1.0 h1:67hneu/eA+6g9Uq2cIlHWqlankaf12MYcLwGtGITbP4=
+github.com/vertica/vertica-sql-go v1.1.0/go.mod h1:fGr44VWdEvL+f+Qt5LkKLOT7GoxaWdoUCnPBU9h6t04=
 go.uber.org/atomic v1.4.0/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
 go.uber.org/multierr v1.1.0/go.mod h1:wR5kodmAFQ0UK8QlbwjlSNy0Z68gJhDJUG5sjR94q/0=
 go.uber.org/zap v1.10.0/go.mod h1:vwi/ZaCAaUcBkycHslxD9B2zi4UTXhF60s6SWpuDF0Q=
