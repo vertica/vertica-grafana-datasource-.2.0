@@ -58,7 +58,7 @@ System.register(['lodash', './response_parser'], function (_export, _context) {
               return {
                 refId: target.refId,
                 datasourceId: _this.id,
-                rawSql: _this.templateSrv.replace(target.rawSql, options.scopedVars, _this.interpolateVariable),
+                rawSql: _this.templateSrv.replace(target.rawSql, options.scopedVars),
                 format: target.format
               };
             });
@@ -112,9 +112,11 @@ System.register(['lodash', './response_parser'], function (_export, _context) {
         }, {
           key: 'interpolateVariable',
           value: function interpolateVariable(value, variable) {
+            var _this3 = this;
+
             if (typeof value === 'string') {
               if (variable.multi || variable.includeAll) {
-                return "'" + value.replace(/'/g, '\'\'') + "'";
+                return this.queryModel.quoteLiteral(value);
               } else {
                 return value;
               }
@@ -125,7 +127,7 @@ System.register(['lodash', './response_parser'], function (_export, _context) {
             }
 
             var quotedValues = _.map(value, function (v) {
-              return "'" + v.replace(/'/g, '\'\'') + "'";
+              return _this3.queryModel.quoteLiteral(v);
             });
             return quotedValues.join(',');
           }

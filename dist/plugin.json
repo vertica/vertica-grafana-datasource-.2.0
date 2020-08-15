@@ -5,9 +5,14 @@
     "category": "sql",
     "metrics": true,
     "annotations": false,
-    "alerting": false,
+    "alerting": true,
     "backend": true,
     "executable": "vertica-grafana-datasource",
+  
+    "partials": {
+      "config": "public/app/plugins/datasource/vertica/partials/config.html"
+    },
+    
     "info": {
       "description": "Data source for Vertica and compatible databases",
       "author": {
@@ -22,11 +27,11 @@
         {"name": "Apache License", "url": "https://github.com/vertica/vertica-grafana-datasource"}
       ],
       "version": "0.2.0",
-      "updated": "2020-07-01"
+      "updated": "2020-03-10"
     },
-
+  
     "dependencies": {
-      "grafanaVersion": "7.x.x",
+      "grafanaVersion": "5.3.x",
       "plugins": [ ]
     }
   }
