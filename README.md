@@ -18,8 +18,10 @@ It defines a new datsource that communicates with Vertica using the Vertica gola
 ```bash
 ln -s (this_dir)/dist (grafana_dir)/data/plugins/vertica-grafana-datasource 
 ```
-Note: If using Grafana 7.0.0, it now requires signed plugins. The Vertica plugin is unsigned so you will need to add the following configuration parameter to the /etc/grafana/grafana.ini file in the [plugins] section for it to load. Restart the Grafana server after adding this change.
+Note: If using Grafana 7.0.0, it now requires signed plugins and recommends updating plugins to use the new framework. The Vertica plugin is unsigned and currently doesn't use the new framework, so you will need to add the following configuration parameter to the /etc/grafana/grafana.ini file in the [plugins] section for it to load. Restart the Grafana server after adding this change.
 allow_loading_unsigned_plugins = vertica-grafana-datasource
+
+Note: Grafana plans on depricating and eventually removing the ability to run unsigned plugins. Once they remove the ability this configuration parameter and the Vertica grafana datasource plugin will no longer work.
 
 ## Logging
 
