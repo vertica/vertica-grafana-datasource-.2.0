@@ -1,0 +1,39 @@
+{
+  "type": "datasource",
+  "name": "Vertica",
+  "id": "vertica-grafana-datasource",
+  "metrics": true,
+  "backend": true,
+  "executable": "gpx_vertica-grafana-datasource",
+  "info": {
+    "description": "vertica datasource",
+    "author": {
+      "name": "vertica",
+      "url": ""
+    },
+    "keywords": [
+      "vertica datasource"
+    ],
+    "logos": {
+      "small": "img/vertica_wht_lrg.svg",
+      "large": "img/vertica_wht_lrg.svg"
+    },
+    "links": [
+      {
+        "name": "Website",
+        "url": "https://github.com/vertica/vertica-grafana-datasource"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/vertica/vertica-grafana-datasource/blob/master/LICENSE"
+      }
+    ],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaVersion": "7.4.x",
+    "plugins": []
+  }
+}

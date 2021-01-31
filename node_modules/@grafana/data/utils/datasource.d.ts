@@ -1,0 +1,12 @@
+import { DataSourcePluginOptionsEditorProps, SelectableValue, DataSourceSettings } from '../types';
+export declare const onUpdateDatasourceOption: (props: DataSourcePluginOptionsEditorProps, key: keyof DataSourceSettings) => (event: React.SyntheticEvent<HTMLInputElement | HTMLSelectElement>) => void;
+export declare const onUpdateDatasourceJsonDataOption: <J, S, K extends keyof J>(props: DataSourcePluginOptionsEditorProps<J, S>, key: K) => (event: React.SyntheticEvent<HTMLInputElement | HTMLSelectElement>) => void;
+export declare const onUpdateDatasourceSecureJsonDataOption: <J, S extends {} = Record<string, any>>(props: DataSourcePluginOptionsEditorProps<J, S>, key: string) => (event: React.SyntheticEvent<HTMLInputElement | HTMLSelectElement>) => void;
+export declare const onUpdateDatasourceJsonDataOptionSelect: <J, S, K extends keyof J>(props: DataSourcePluginOptionsEditorProps<J, S>, key: K) => (selected: SelectableValue) => void;
+export declare const onUpdateDatasourceJsonDataOptionChecked: <J, S, K extends keyof J>(props: DataSourcePluginOptionsEditorProps<J, S>, key: K) => (event: React.SyntheticEvent<HTMLInputElement>) => void;
+export declare const onUpdateDatasourceSecureJsonDataOptionSelect: <J, S extends {} = Record<string, any>>(props: DataSourcePluginOptionsEditorProps<J, S>, key: string) => (selected: SelectableValue) => void;
+export declare const onUpdateDatasourceResetOption: (props: DataSourcePluginOptionsEditorProps, key: string) => (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+export declare function updateDatasourcePluginOption(props: DataSourcePluginOptionsEditorProps, key: keyof DataSourceSettings, val: any): void;
+export declare const updateDatasourcePluginJsonDataOption: <J, S, K extends keyof J>(props: DataSourcePluginOptionsEditorProps<J, S>, key: K, val: any) => void;
+export declare const updateDatasourcePluginSecureJsonDataOption: <J, S extends {} = Record<string, any>>(props: DataSourcePluginOptionsEditorProps<J, S>, key: string, val: any) => void;
+export declare const updateDatasourcePluginResetOption: <J, S extends {} = Record<string, any>>(props: DataSourcePluginOptionsEditorProps, key: string) => void;

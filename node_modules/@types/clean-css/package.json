@@ -1,0 +1,32 @@
+{
+    "name": "@types/clean-css",
+    "version": "4.2.3",
+    "description": "TypeScript definitions for clean-css",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Tanguy Krotoff",
+            "url": "https://github.com/tkrotoff",
+            "githubUsername": "tkrotoff"
+        },
+        {
+            "name": "Andrew Potter",
+            "url": "https://github.com/GolaWaya",
+            "githubUsername": "GolaWaya"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/clean-css"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/node": "*",
+        "source-map": "^0.6.0"
+    },
+    "typesPublisherContentHash": "1100464c30d79ee6071840852e5a8fa3b40265f663c9bae33ffb16692fd4c7a5",
+    "typeScriptVersion": "3.3"
+}

@@ -1,0 +1,28 @@
+{
+  "name": "vertica-grafana-datasource",
+  "version": "1.0.0",
+  "description": "vertica datasource",
+  "scripts": {
+    "build": "grafana-toolkit plugin:build",
+    "test": "grafana-toolkit plugin:test",
+    "dev": "grafana-toolkit plugin:dev",
+    "watch": "grafana-toolkit plugin:dev --watch"
+  },
+  "author": "raj-sameer",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@grafana/data": "next",
+    "@grafana/runtime": "next",
+    "@grafana/ui": "next",
+    "@types/lodash": "latest"
+  },
+  "engines": {
+    "node": ">=12 <13"
+  },
+  "resolutions": {
+    "rxjs": "6.6.3"
+  },
+  "dependencies": {
+    "@grafana/toolkit": "^7.3.7"
+  }
+}
