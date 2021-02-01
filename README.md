@@ -47,7 +47,7 @@ systemctl restart grafana-server
 ## Using the plugin
 ### Adding the data source
 1. Use the add data source option in grafana.
-![alt text](https://github.com/vertica/vertica-grafana-datasource/blob/master/src/img/vertca-ds-conf.png)
+![](src/img/vertica-ds-conf.png)
 - Name: Data source name
 - Host: Ip and port of vertica data base , example: <vertica-ip>:<vertica-port>
 - Database: data base name
@@ -86,7 +86,7 @@ Time filter:
 Example: "end_time > TO_TIMESTAMP($__from/1000) and end_time < TO_TIMESTAMP($__to/1000)"  this convert the the global $__from and $__to variables from grafana, to a timestamp format for vertica.
 
 Visualization:
-![alt text](https://github.com/vertica/vertica-grafana-datasource/blob/master/src/img/vertica-ds-time-series.png)
+![](src/img/vertica-query-time-series.png)
 
 Table Query:
 ~~~~sql 
@@ -101,7 +101,7 @@ where event_timestamp > sysdate() -1/24 and error_level != 'INFO'
 Any query without time column is returned as in a Long format and can be esily visualized as a table.
 
 Visualization:
-![alt text](https://github.com/vertica/vertica-grafana-datasource/blob/master/src/img/vertica-ds-table-query.png)
+![](src/img/vertica-query-table.png)
 
 ### Variables:
 Varibales can be esily defined as sql queries, the only restriction we have is query shoyld return at least one column with "_text" name.
@@ -113,12 +113,12 @@ Query:
 ~~~~sql 
 select distinct node_name as '_text' from v_monitor.cpu_usage 
 ~~~~
-![alt text](https://github.com/vertica/vertica-grafana-datasource/blob/master/src/img/vertca-ds-query-variable.png)
+![](src/img/vertica-var-example.png)
 
 Usage:
 You can use the grafana [Advanced formating options]https://grafana.com/docs/grafana/latest/variables/advanced-variable-format-options/.
 In this example we create a multi select variable of node name , use ${node:sqlstring} for templating in the query. 
-![alt text](https://github.com/vertica/vertica-grafana-datasource/blob/master/src/img/vertica-ds-var-usage.png)
+![](src/img/vertica-var-usage.png)
 
 ## Debugging
 
