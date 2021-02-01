@@ -8,20 +8,15 @@ export class DataSource extends DataSourceWithBackend<VerticaQuery, VerticaDataS
     super(instanceSettings);
     this.templateSrv = getTemplateSrv();
   }
-  //applyTemplateVariables adds the variables values to the query, you can also template the global variables.
-  //so before sending the request to backend the varibles like $someVariable will be replaced by the value.
+
   applyTemplateVariables(query: VerticaQuery, scopedVars: ScopedVars): VerticaQuery {
     query.queryTemplated = this.templateSrv.replace(query.queryString, scopedVars);
     return query;
   }
 
-  //metricFindQuery is used to support the variables for this data source.
-  //the variables query should return at least a column with name "_text"
-  //the variable query can also return two column with "_text" and "_value", if so then the variable can have a display value and use value.
-  //might be a use full feture, since grafana added this. due to this feature the plugin works with grafana 7.4.X
   async metricFindQuery(query: string, options?: any) {
     const findVal: MetricFindValue[] = [];
-    if (!query || !options.variable.datasource) {
+    if (!query) {
       return Promise.resolve(findVal);
     }
     const response = await this.query({
