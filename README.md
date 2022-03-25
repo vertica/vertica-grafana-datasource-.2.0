@@ -1,4 +1,5 @@
-u
+This repository is __deprecated__ and replaced by https://github.com/vertica/vertica-grafana-datasource.
+
  vertica-grafana-datasource
 
 ## Overview
